@@ -15,6 +15,7 @@
       .report-header { display:grid;grid-template-columns:auto 1fr;align-items:center;gap:28px;padding-bottom:27px;border-bottom:1px solid var(--line); } .score-orb { --score:0%; width:142px;height:142px;border-radius:50%;background:conic-gradient(var(--blue) var(--score),#e7edf6 0);display:grid;place-items:center;position:relative; } .score-orb:after { content:"";position:absolute;inset:11px;background:white;border-radius:50%; } .score-value { position:relative;z-index:1;text-align:center;font-size:28px;font-weight:850;letter-spacing:-.04em; } .score-value span { display:block;font-size:12px;letter-spacing:0;color:var(--muted);font-weight:700; } .stage { display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:6px 10px;background:#fff4de;color:#985e00;font-size:13px;font-weight:800; } .stage:before { content:"";width:7px;height:7px;border-radius:50%;background:currentColor; } .headline { margin:10px 0 0;font-size:28px;letter-spacing:-.03em; } .ai-note { display:flex;align-items:center;gap:8px;color:var(--green);font-size:13px;font-weight:750;margin-top:14px; } .ai-note .spark { font-size:17px; }
       .section { margin-top:34px; } .section-heading { display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:16px; } .section-heading p { margin:0;font-size:14px; } .dimension-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:12px; } .dimension-card { border:1px solid var(--line);border-radius:13px;padding:15px;background:#fbfcff; } .dimension-card b { display:block;font-size:13px;line-height:1.25;min-height:34px; } .dimension-card span { display:block;color:var(--blue);font-size:23px;font-weight:850;letter-spacing:-.04em;margin:8px 0; } .mini-bar {height:6px;background:#e5ebf5;border-radius:99px;overflow:hidden}.mini-bar i{display:block;height:100%;background:#4d80dc;border-radius:99px}
       .cards { display:grid;grid-template-columns:repeat(2,1fr);gap:14px; } .strength,.priority { border-radius:15px;padding:18px; } .strength { background:#effaf5;border:1px solid #c6eddd; } .priority { background:#fffaf0;border:1px solid #f1dfb7; } .card-score { color:var(--muted);font-size:13px;font-weight:750;margin-bottom:10px; } .priority { display:grid;grid-template-columns:42px 1fr;gap:14px; } .priority-num { display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:#fff0cb;color:#a96700;font-weight:850; } .priority p,.strength p { font-size:14px;margin:7px 0 10px; } ul { padding-left:18px;margin:0;color:#455974;font-size:14px;line-height:1.5; } .loading { display:inline-flex;align-items:center;gap:8px;color:var(--blue);font-size:14px;font-weight:700; } .dot { width:7px;height:7px;background:var(--blue);border-radius:50%;animation:pulse 1s infinite; } .loading-panel { min-height:400px;display:grid;place-items:center;text-align:center; }.loading-core{max-width:440px}.loader-orb{width:82px;height:82px;margin:0 auto 24px;border-radius:50%;background:conic-gradient(#3479ec 0 24%,#e7edf6 24%);position:relative;animation:spin 1.3s linear infinite}.loader-orb:after{content:"✦";position:absolute;inset:9px;display:grid;place-items:center;background:white;border-radius:50%;color:#2865d9;font-size:25px}.loading-track{height:7px;background:#e7edf6;border-radius:99px;margin:24px auto;overflow:hidden;max-width:300px}.loading-track i{display:block;width:46%;height:100%;background:linear-gradient(90deg,#2f70e0,#6c9efa);border-radius:99px;animation:load 1.4s ease-in-out infinite}@keyframes pulse {50%{opacity:.25;transform:scale(.7)}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes load{50%{transform:translateX(115%)}}
+      .report-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:32px}.secondary{background:white;color:#245bd5;border:1px solid #b8c9ec;box-shadow:none}.secondary:hover{background:var(--blue-soft)}.chat-overlay{position:fixed;inset:0;z-index:20;background:#12213c9c;padding:clamp(12px,4vw,44px);display:grid;place-items:center}.chat-window{width:min(940px,100%);height:min(760px,calc(100vh - 24px));display:flex;flex-direction:column;background:#fff;border-radius:22px;box-shadow:0 24px 80px #07112666;overflow:hidden}.chat-header{display:flex;align-items:start;justify-content:space-between;gap:20px;padding:22px 25px 18px;border-bottom:1px solid var(--line)}.chat-header h2{margin:0 0 4px}.chat-header p{margin:0;font-size:14px}.chat-close{width:38px;height:38px;padding:0;background:#f0f4fa;color:#40526e;box-shadow:none;font-size:25px;line-height:1}.chat-close:hover{background:#e1e9f5}.chat-body{flex:1;min-height:0;overflow:auto;padding:24px 25px;background:#f9fbfe}.chat-intro{max-width:660px;margin-bottom:20px;color:#526681;line-height:1.55}.suggestions{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}.suggestion{padding:8px 11px;background:white;border:1px solid #c9d7ec;color:#285aa9;font-size:13px;box-shadow:none;text-align:left}.suggestion:hover{background:var(--blue-soft)}.chat-message{max-width:min(680px,88%);margin:13px 0;padding:12px 14px;border-radius:15px;line-height:1.5;white-space:pre-wrap}.chat-message p{margin:4px 0 0;color:inherit}.chat-message .message-label{display:block;font-size:11px;font-weight:850;letter-spacing:.06em;text-transform:uppercase;opacity:.72}.chat-message.assistant{background:white;border:1px solid var(--line);color:#283b58}.chat-message.user{margin-left:auto;background:#2865d9;color:white}.chat-message.thinking{color:#61738f;font-style:italic}.chat-composer{display:flex;gap:11px;padding:17px 22px;border-top:1px solid var(--line);background:white}.chat-composer textarea{flex:1;resize:none;min-height:49px;max-height:120px;padding:13px;border:1px solid #bdcbe0;border-radius:10px;font:inherit;color:var(--ink)}.chat-composer button{align-self:end}.chat-hint{padding:0 22px 15px;margin:0;color:#71819a;font-size:12px;background:white}
       @media (max-width:680px) { .shell { padding:22px 14px 45px; }.panel{padding:25px 20px}.answer-grid{grid-template-columns:repeat(2,1fr)}.answer-grid button:last-child{grid-column:span 2}.report-header{grid-template-columns:1fr}.score-orb{width:122px;height:122px}.dimension-grid{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:1fr}.question-meta{font-size:12px} }
     </style>
   </head>
@@ -45,9 +46,16 @@
         <section class="section"><div class="section-heading"><h2>Readiness by dimension</h2><p>Average of related survey responses</p></div><div id="dimensions" class="dimension-grid"></div></section>
         <section class="section"><div class="section-heading"><h2>Strengths to build on</h2><p>Use these as your foundation</p></div><div id="strengths" class="cards"></div></section>
         <section class="section"><div class="section-heading"><h2>Priority actions</h2><p>Focus on these first</p></div><div id="priorities" class="cards"></div></section>
-        <button onclick="location.reload()" style="margin-top:32px">Take the survey again</button>
+        <div class="report-actions"><button onclick="openScoreChat()">Learn more about my score</button><button class="secondary" onclick="location.reload()">Take the survey again</button></div>
       </section>
     </main>
+    <section id="scoreChat" class="chat-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="chatTitle">
+      <div class="chat-window">
+        <header class="chat-header"><div><span class="eyebrow">Your AI readiness coach</span><h2 id="chatTitle">Let’s make your score useful.</h2><p>Ask about a result, a priority, or a realistic next step.</p></div><button class="chat-close" onclick="closeScoreChat()" aria-label="Close score chat">×</button></header>
+        <div id="chatBody" class="chat-body"><div class="chat-intro">Your coach has your role and score profile as context. It can help turn this report into practical next steps.</div><div class="suggestions"><button class="suggestion" onclick="useSuggestion('What should I focus on first this month?')">What should I focus on first?</button><button class="suggestion" onclick="useSuggestion('How can I improve my lowest score in a practical way?')">How can I improve my lowest score?</button><button class="suggestion" onclick="useSuggestion('Give me a simple 30-day improvement plan.')">Give me a 30-day plan</button><button class="suggestion" onclick="useSuggestion('What does my overall score mean for my role?')">What does my score mean?</button></div><div id="chatMessages"></div></div>
+        <div class="chat-composer"><textarea id="chatInput" rows="1" maxlength="1200" placeholder="Ask about your score…"></textarea><button id="chatSend" onclick="sendScoreChat()">Send</button></div><p class="chat-hint">Press Enter to send · Shift + Enter for a new line</p>
+      </div>
+    </section>
     <script src="config.js"></script>
     <script>
       const questions=[
@@ -56,7 +64,7 @@
         ['Trust & Transparency','Culture'],['Ethics & Responsible Use','Culture'],['Stakeholder Engagement & Awareness','Culture'],
         ['AI Literacy','Education'],['Expertise Development','Education']
       ];
-      let index=0, answers=[]; const $=id=>document.getElementById(id); const esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+      let index=0, answers=[], scoreContext=null, chatMessages=[]; const $=id=>document.getElementById(id); const esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
       function startSurvey(){ $('start').classList.add('hidden');$('survey').classList.remove('hidden');renderQuestion(); }
       function renderQuestion(){ const q=questions[index];$('counter').textContent=`Question ${index+1} of ${questions.length}`;$('dimension').textContent=q[1];$('progress').style.width=`${index/questions.length*100}%`;$('question').textContent=`How ready are you for ${q[0]}?`;$('answers').innerHTML=[['Low',1,'Not yet in place'],['Fair',2,'Inconsistent'],['Moderate',3,'Developing'],['Good',4,'Working well'],['High',5,'A clear strength']].map(([label,value,note])=>`<button onclick="answer(${value})">${label}<small>${note}</small></button>`).join(''); }
       function answer(value){answers.push((value-1)*25);index++;if(index<questions.length)renderQuestion();else buildReport();}
@@ -67,6 +75,8 @@
         $('loading').classList.remove('hidden');
         const scores=questions.map((q,i)=>({subDimension:q[0],dimension:q[1],score:answers[i]}));
         const overall=answers.reduce((a,b)=>a+b,0)/answers.length;
+        scoreContext={role:$('role').value,overallScore:overall,scores};
+        chatMessages=[];
         let report=localReport(overall,scores),aiReady=false;
         if(window.HEAIR_API_URL){
           try{
@@ -80,6 +90,29 @@
         renderReport(report,overall,scores);
         $('aiStatus').innerHTML=aiReady?'<span class="spark">✦</span><span>AI-enhanced recommendations, grounded in your score profile</span>':'<span class="spark">✦</span><span>Score-based readiness action plan</span>';
       }
+      function openScoreChat(){ if(!scoreContext)return; $('scoreChat').classList.remove('hidden');$('chatInput').focus(); }
+      function closeScoreChat(){ $('scoreChat').classList.add('hidden'); }
+      function useSuggestion(text){ $('chatInput').value=text;$('chatInput').focus(); }
+      function appendChatMessage(role,text,extraClass=''){
+        const item=document.createElement('div');item.className=`chat-message ${role} ${extraClass}`;
+        const label=document.createElement('span');label.className='message-label';label.textContent=role==='user'?'You':'AI readiness coach';
+        const content=document.createElement('p');content.textContent=text;item.append(label,content);$('chatMessages').append(item);$('chatBody').scrollTop=$('chatBody').scrollHeight;return item;
+      }
+      async function sendScoreChat(){
+        const input=$('chatInput'),send=$('chatSend'),text=input.value.trim();if(!text||!scoreContext||send.disabled)return;
+        input.value='';send.disabled=true;appendChatMessage('user',text);chatMessages.push({role:'user',content:text});
+        const thinking=appendChatMessage('assistant','Thinking through your score profile…','thinking');
+        try{
+          const conversation=chatMessages.length>12?chatMessages.slice(-11):chatMessages;
+          const response=await fetch(window.HEAIR_API_URL.replace(/\/$/,'')+'/public/score-chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...scoreContext,messages:conversation})});
+          const data=await response.json();thinking.remove();
+          if(!response.ok||!data.message)throw new Error('No answer returned');
+          appendChatMessage('assistant',data.message);chatMessages.push({role:'assistant',content:data.message});
+        }catch{thinking.remove();appendChatMessage('assistant','I could not reach the AI coach right now. Please try again in a moment.');}
+        finally{send.disabled=false;input.focus();}
+      }
+      $('chatInput').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();sendScoreChat();}});
+      document.addEventListener('keydown',event=>{if(event.key==='Escape')closeScoreChat();});
     </script>
   </body>
 </html>
