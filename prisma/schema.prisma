@@ -1,0 +1,249 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum StakeholderRole {
+  student
+  faculty
+  administrator_leadership
+  it_staff
+  academic_business_affairs_staff
+}
+
+enum SystemRole {
+  self
+  admin
+  dept_viewer
+}
+enum SessionStatus {
+  in_progress
+  completed
+  abandoned
+}
+enum QuestionType {
+  likert_5
+  multiple_choice
+  yes_no
+  free_text
+}
+enum RecommendationCategory {
+  strength
+  weakness
+  priority_action
+  resource
+}
+enum KnowledgeSourceType {
+  heair_paper
+  framework
+  research_paper
+  best_practice
+}
+
+model Institution {
+  id String @id @default(uuid()) @db.Uuid
+  name String
+  createdAt DateTime @default(now())
+  departments Department[]
+  users User[]
+}
+
+model Department {
+  id String @id @default(uuid()) @db.Uuid
+  institutionId String @db.Uuid
+  name String
+  createdAt DateTime @default(now())
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  users User[]
+  aggregateScores DepartmentAggregateScore[]
+  @@unique([institutionId, name])
+}
+
+model User {
+  id String @id @default(uuid()) @db.Uuid
+  email String @unique
+  passwordHash String
+  fullName String?
+  role StakeholderRole?
+  systemRole SystemRole @default(self)
+  departmentId String? @db.Uuid
+  institutionId String? @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  department Department? @relation(fields: [departmentId], references: [id])
+  institution Institution? @relation(fields: [institutionId], references: [id])
+  sessions AssessmentSession[]
+}
+
+model Dimension {
+  id String @id
+  label String
+  description String
+  sortOrder Int
+  subDimensions SubDimension[]
+  scores DimensionScore[]
+  aggregates DepartmentAggregateScore[]
+}
+
+model SubDimension {
+  id String @id
+  dimensionId String
+  label String
+  description String
+  sortOrder Int
+  dimension Dimension @relation(fields: [dimensionId], references: [id])
+  questions Question[]
+  scores SubDimensionScore[]
+  recommendations Recommendation[]
+}
+
+model Question {
+  id String @id @default(uuid()) @db.Uuid
+  role StakeholderRole
+  subDimensionId String
+  prompt String
+  questionType QuestionType @default(likert_5)
+  options Json?
+  scoringKey Json?
+  isAdaptiveSeed Boolean @default(false)
+  weight Decimal @default(1) @db.Decimal(8,2)
+  active Boolean @default(true)
+  sessionScoped Boolean @default(false)
+  createdAt DateTime @default(now())
+  subDimension SubDimension @relation(fields: [subDimensionId], references: [id])
+  responses QuestionResponse[]
+  triggerRules FollowUpRule[] @relation("TriggerQuestion")
+  followUpFor FollowUpRule[] @relation("FollowUpQuestion")
+}
+
+model FollowUpRule {
+  id String @id @default(uuid()) @db.Uuid
+  triggerQuestionId String @db.Uuid
+  triggerCondition Json
+  followUpQuestionId String? @db.Uuid
+  followUpPromptTemplate String?
+  triggerQuestion Question @relation("TriggerQuestion", fields: [triggerQuestionId], references: [id], onDelete: Cascade)
+  followUpQuestion Question? @relation("FollowUpQuestion", fields: [followUpQuestionId], references: [id])
+}
+
+model AssessmentSession {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  roleAtTime StakeholderRole
+  departmentIdAtTime String? @db.Uuid
+  status SessionStatus @default(in_progress)
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  responses QuestionResponse[]
+  scoreResult ScoreResult?
+  report ReadinessReport?
+}
+
+model QuestionResponse {
+  id String @id @default(uuid()) @db.Uuid
+  sessionId String @db.Uuid
+  questionId String @db.Uuid
+  responseValue Json
+  isFollowUp Boolean @default(false)
+  generatedQuestionText String?
+  parentResponseId String? @db.Uuid
+  createdAt DateTime @default(now())
+  session AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id])
+  parentResponse QuestionResponse? @relation("ResponseThread", fields: [parentResponseId], references: [id])
+  children QuestionResponse[] @relation("ResponseThread")
+  @@unique([sessionId, questionId])
+}
+
+model ScoreResult {
+  id String @id @default(uuid()) @db.Uuid
+  sessionId String @unique @db.Uuid
+  overallScore Decimal @db.Decimal(5,2)
+  computedAt DateTime @default(now())
+  session AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  dimensionScores DimensionScore[]
+  subDimensionScores SubDimensionScore[]
+}
+
+model DimensionScore {
+  id String @id @default(uuid()) @db.Uuid
+  scoreResultId String @db.Uuid
+  dimensionId String
+  score Decimal @db.Decimal(5,2)
+  scoreResult ScoreResult @relation(fields: [scoreResultId], references: [id], onDelete: Cascade)
+  dimension Dimension @relation(fields: [dimensionId], references: [id])
+  @@unique([scoreResultId, dimensionId])
+}
+
+model SubDimensionScore {
+  id String @id @default(uuid()) @db.Uuid
+  scoreResultId String @db.Uuid
+  subDimensionId String
+  score Decimal @db.Decimal(5,2)
+  responseCount Int
+  scoreResult ScoreResult @relation(fields: [scoreResultId], references: [id], onDelete: Cascade)
+  subDimension SubDimension @relation(fields: [subDimensionId], references: [id])
+  @@unique([scoreResultId, subDimensionId])
+}
+
+model KnowledgeDocument {
+  id String @id @default(uuid()) @db.Uuid
+  sourceTitle String
+  sourceType KnowledgeSourceType
+  sourceUrlOrCitation String?
+  rawText String
+  createdAt DateTime @default(now())
+  chunks KnowledgeChunk[]
+}
+
+model KnowledgeChunk {
+  id String @id @default(uuid()) @db.Uuid
+  documentId String @db.Uuid
+  chunkText String
+  chunkIndex Int
+  embedding Unsupported("vector(1536)")?
+  metadata Json?
+  document KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  @@unique([documentId, chunkIndex])
+}
+
+model ReadinessReport {
+  id String @id @default(uuid()) @db.Uuid
+  sessionId String @unique @db.Uuid
+  overallScore Decimal @db.Decimal(5,2)
+  summaryText String
+  generatedAt DateTime @default(now())
+  session AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  recommendations Recommendation[]
+}
+
+model Recommendation {
+  id String @id @default(uuid()) @db.Uuid
+  reportId String @db.Uuid
+  category RecommendationCategory
+  subDimensionId String?
+  title String
+  description String
+  supportingCitationIds String[] @db.Uuid
+  sortOrder Int
+  report ReadinessReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  subDimension SubDimension? @relation(fields: [subDimensionId], references: [id])
+}
+
+model DepartmentAggregateScore {
+  id String @id @default(uuid()) @db.Uuid
+  departmentId String @db.Uuid
+  dimensionId String
+  avgScore Decimal @db.Decimal(5,2)
+  sampleSize Int
+  periodStart DateTime @db.Date
+  periodEnd DateTime @db.Date
+  department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  dimension Dimension @relation(fields: [dimensionId], references: [id])
+  @@unique([departmentId, dimensionId, periodStart, periodEnd])
+}
