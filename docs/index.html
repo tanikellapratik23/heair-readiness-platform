@@ -103,7 +103,7 @@
         input.value='';send.disabled=true;appendChatMessage('user',text);chatMessages.push({role:'user',content:text});
         const thinking=appendChatMessage('assistant','Thinking through your score profile…','thinking');
         try{
-          const conversation=chatMessages.length>12?chatMessages.slice(-11):chatMessages;
+          const conversation=chatMessages.length>7?chatMessages.slice(-7):chatMessages;
           const response=await fetch(window.HEAIR_API_URL.replace(/\/$/,'')+'/public/score-chat',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({...scoreContext,messages:conversation})});
           const data=await response.json();thinking.remove();
           if(!response.ok||!data.message)throw new Error('No answer returned');

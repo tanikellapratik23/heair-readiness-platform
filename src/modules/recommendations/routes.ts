@@ -12,7 +12,10 @@ const chatInput = z.object({
   role: z.string().min(1).max(80),
   overallScore: z.number().min(0).max(100),
   scores: z.array(z.object({ subDimension: z.string().min(1).max(100), dimension: z.string().min(1).max(100), score: z.number().min(0).max(100) })).min(4).max(12),
-  messages: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().min(1).max(1200) })).min(1).max(12)
+  messages: z.array(z.discriminatedUnion("role", [
+    z.object({ role: z.literal("user"), content: z.string().min(1).max(1200) }),
+    z.object({ role: z.literal("assistant"), content: z.string().min(1).max(3000) })
+  ])).min(1).max(7)
 });
 
 /**
@@ -37,8 +40,8 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
         headers: { "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
         body: JSON.stringify({
           model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
-          max_tokens: 500,
-          system: `You are a friendly HEAIR readiness coach. Speak in clear, natural English for a ${body.data.role}. Answer only from the supplied score profile and conversation. Give practical, achievable suggestions. Use short paragraphs and, when helpful, a brief bulleted list. Do not use headings, tables, citations, jargon, or Markdown formatting. Never invent an institution's policy; advise the user to check their institution when policy-specific details matter. Score profile: ${JSON.stringify({ overallScore: body.data.overallScore, scores: body.data.scores })}`,
+          max_tokens: 350,
+          system: `You are a friendly HEAIR readiness coach. Speak in clear, natural English for a ${body.data.role}. Answer only from the supplied score profile and conversation. Give practical, achievable suggestions in 140 words or fewer. Use two to four short paragraphs, or at most three short bullets. Do not use headings, tables, citations, jargon, or Markdown formatting. Never invent an institution's policy; advise the user to check their institution when policy-specific details matter. Score profile: ${JSON.stringify({ overallScore: body.data.overallScore, scores: body.data.scores })}`,
           messages: body.data.messages
         })
       });
