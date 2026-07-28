@@ -6,18 +6,18 @@ Working backend for role-adaptive Higher Education AI Readiness (HEAIR) assessme
 
 ---
 
-## 🎯 Take the Assessment
+## Take the Assessment
 
 Want to see how AI-ready your organization is?
 
-👉 **[Take the HEAIR Readiness Quiz](https://tanikellapratik23.github.io/heair-readiness-platform/docs/)**
+**[Take the HEAIR Readiness Quiz](https://tanikellapratik23.github.io/heair-readiness-platform/docs/)**
 
 - **12 Targeted Questions**: Quickly evaluate your organization's core readiness metrics.
 - **Instant AI Score & Coaching Response**: Receive a customized, AI-generated breakdown tailored to your results, highlighting key strengths and immediate steps for growth.
 
 ---
 
-## 🛠 Features
+## Features
 
 - **Interactive Assessment Interface**: Lightweight 12-question diagnostic hosted via GitHub Pages.
 - **AI Score Coaching Chat**: Real-time, context-aware AI coaching and personalized feedback based on user scores.
