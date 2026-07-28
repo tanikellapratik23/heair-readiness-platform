@@ -34,14 +34,13 @@
             <p class="hero-footnote">Your results are private to your account and can be revisited at any time.</p>
           </div>
           <aside class="insight-panel" aria-live="polite">
-            <p class="insight-label">Rotating readiness insight</p>
+            <p class="insight-label">READINESS INSIGHT</p>
             <div id="insightContent">
               <div id="insightRole" class="insight-role">Student</div>
-              <div id="insightValue" class="insight-value">12</div>
-              <div id="insightCaption" class="insight-caption">role-specific questions</div>
+              <div id="insightValue" class="insight-value">—</div>
+              <div id="insightCaption" class="insight-caption">Average readiness</div>
               <p id="insightDescription" class="insight-description">Student readiness connects responsible AI use, academic integrity, data privacy, and learning support.</p>
             </div>
-            <div id="insightDots" class="insight-dots" aria-hidden="true"></div>
           </aside>
         </div>
         <div class="framework-strip" aria-label="Assessment highlights"><div class="framework-stat"><b>60</b><span>role-specific assessment questions</span></div><div class="framework-stat"><b>5</b><span>stakeholder perspectives</span></div><div class="framework-stat"><b>4</b><span>HEAIR readiness dimensions</span></div></div>
@@ -103,25 +102,18 @@
       const esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
       const apiBase=()=>window.HEAIR_API_URL?.replace(/\/$/,'');
       const legacyRoleMap={administrator_leadership:'leadership',academic_business_affairs_staff:'business_affairs',it_staff:'communications'};
-      const roleInsights=[
-        {role:'student',label:'Student',description:'Student readiness connects responsible AI use, academic integrity, data privacy, and learning support.'},
-        {role:'faculty',label:'Faculty',description:'Faculty readiness connects course design, learner protection, transparent AI use, and evidence-informed teaching.'},
-        {role:'leadership',label:'Leadership',description:'Leadership readiness connects strategy, investment, governance, institutional trust, and long-term capability.'},
-        {role:'business_affairs',label:'Business Affairs',description:'Business Affairs readiness connects procurement, service delivery, financial value, workforce impact, and vendor oversight.'},
-        {role:'communications',label:'Communications',description:'Communications readiness connects trustworthy content, audience understanding, accessibility, verification, and public transparency.'}
-      ];
-      const liveInsights={}; let insightIndex=0;
+      const studentInsight={role:'student',label:'Student',description:'Student readiness connects responsible AI use, academic integrity, data privacy, and learning support.'};
+      let studentAverage=null;
       function renderInsight(){
-        const insight=roleInsights[insightIndex],live=liveInsights[insight.role],content=$('insightContent');content.classList.remove('insight-changing');void content.offsetWidth;content.classList.add('insight-changing');
-        $('insightRole').textContent=insight.label;
-        $('insightValue').innerHTML=live?`${live.averageScore.toFixed(1)}<span> / 100</span>`:'12';
-        $('insightCaption').textContent=live?'anonymous average readiness':'role-specific questions';
-        $('insightDescription').textContent=live?`${insight.description} This live average is shown only after at least three completed assessments for this role.`:insight.description;
-        $('insightDots').innerHTML=roleInsights.map((_,position)=>`<i class="${position===insightIndex?'active':''}"></i>`).join('');
+        const content=$('insightContent');content.classList.remove('insight-changing');void content.offsetWidth;content.classList.add('insight-changing');
+        $('insightRole').textContent=studentInsight.label;
+        $('insightValue').innerHTML=studentAverage?`${studentAverage.averageScore.toFixed(1)}<span> / 100</span>`:'—';
+        $('insightCaption').textContent='Average readiness';
+        $('insightDescription').textContent=studentAverage?`${studentInsight.description} This score reflects completed Student assessments.`:'Student readiness connects responsible AI use, academic integrity, data privacy, and learning support.';
       }
       async function loadLiveInsights(){
         if(!apiBase())return;
-        try{const response=await fetch(apiBase()+'/public/insights');const data=await response.json();if(!response.ok||!Array.isArray(data.insights))return;for(const insight of data.insights){if(typeof insight.averageScore==='number')liveInsights[insight.role]=insight;}renderInsight();}catch{}
+        try{const response=await fetch(apiBase()+'/public/insights');const data=await response.json();if(!response.ok||!Array.isArray(data.insights))return;studentAverage=data.insights.find(insight=>insight.role==='student'&&typeof insight.averageScore==='number')||null;renderInsight();}catch{}
       }
       async function api(path,options={}){
         if(!apiBase())throw new Error('Account storage is not configured yet.');
@@ -231,7 +223,6 @@
       $('chatInput').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();sendScoreChat();}});
       document.addEventListener('keydown',event=>{if(event.key==='Escape')closeScoreChat();});
       renderInsight();
-      setInterval(()=>{insightIndex=(insightIndex+1)%roleInsights.length;renderInsight();},4600);
       loadLiveInsights();
       (async()=>{if(!authToken)return;try{const user=await api('/me');showSignedIn(user);await loadSavedResults();}catch{localStorage.removeItem('heair_auth_token');authToken='';}})();
     </script>
