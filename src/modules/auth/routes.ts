@@ -18,7 +18,7 @@ export async function authRoutes(app: FastifyInstance) {
   app.post("/auth/login", async (request, reply) => {
     const body = registration.pick({ email: true, password: true }).parse(request.body); const user = await prisma.user.findUnique({ where: { email: body.email } });
     if (!user || !(await bcrypt.compare(body.password, user.passwordHash))) return fail(reply, 401, "Invalid email or password.");
-    return { user: { id: user.id, email: user.email, role: user.role }, token: app.jwt.sign({ sub: user.id }) };
+    return { user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role }, token: app.jwt.sign({ sub: user.id }) };
   });
   app.get("/me", async (request, reply) => { const user = await currentUser(request); return user ?? fail(reply, 404, "User not found."); });
   app.patch("/me/role", async (request, reply) => {

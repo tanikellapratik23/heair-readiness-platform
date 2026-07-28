@@ -206,7 +206,9 @@ model KnowledgeChunk {
   documentId String @db.Uuid
   chunkText String
   chunkIndex Int
-  embedding Unsupported("vector(1536)")?
+  // JSON keeps the MVP compatible with managed PostgreSQL. Replace with pgvector
+  // in a dedicated migration when semantic retrieval is enabled in production.
+  embedding Json?
   metadata Json?
   document KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
   @@unique([documentId, chunkIndex])
@@ -217,6 +219,7 @@ model ReadinessReport {
   sessionId String @unique @db.Uuid
   overallScore Decimal @db.Decimal(5,2)
   summaryText String
+  structuredData Json?
   generatedAt DateTime @default(now())
   session AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   recommendations Recommendation[]

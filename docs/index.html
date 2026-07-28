@@ -10,7 +10,8 @@
       * { box-sizing:border-box; } body { margin:0; min-height:100vh; background:radial-gradient(circle at 90% 0,#e1edff 0,transparent 28%),var(--bg); color:var(--ink); font:16px Inter,ui-sans-serif,system-ui,-apple-system,sans-serif; }
       .shell { max-width:1040px; margin:0 auto; padding:38px 20px 64px; } .brand { display:flex; align-items:center; gap:10px; margin-bottom:25px; color:#31558a; font-size:14px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; } .brand-mark { width:31px;height:31px;border-radius:9px;background:linear-gradient(135deg,#3479ec,#183c89);display:grid;place-items:center;color:white;font-size:17px; }
       .panel { background:rgba(255,255,255,.94); border:1px solid var(--line); border-radius:22px; padding:clamp(24px,5vw,48px); box-shadow:0 16px 44px #25467912; } h1 { font-size:clamp(32px,5vw,50px); line-height:1.04; letter-spacing:-.04em; margin:12px 0 16px; } h2 { font-size:21px;letter-spacing:-.02em; } h3 { margin:0 0 6px;font-size:16px; } p { color:var(--muted); line-height:1.6; } .eyebrow { color:var(--blue); font-size:13px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; } .lede { max-width:630px; font-size:18px; }
-      select,button { font:inherit; } select { display:block;width:100%;max-width:430px;padding:13px 15px;border:1px solid #bdcbe0;border-radius:10px;background:white;color:var(--ink);margin:10px 0 20px; } button { border:0;border-radius:10px;background:var(--blue);color:white;padding:12px 18px;font-weight:750;cursor:pointer;box-shadow:0 5px 12px #2563d92b;transition:transform .15s,background .15s; } button:hover { background:#174ea9; transform:translateY(-1px); } .hidden { display:none!important; }
+      select,button,input { font:inherit; } select,input { display:block;width:100%;max-width:430px;padding:13px 15px;border:1px solid #bdcbe0;border-radius:10px;background:white;color:var(--ink);margin:10px 0 16px; } button { border:0;border-radius:10px;background:var(--blue);color:white;padding:12px 18px;font-weight:750;cursor:pointer;box-shadow:0 5px 12px #2563d92b;transition:transform .15s,background .15s; } button:hover { background:#174ea9; transform:translateY(-1px); } button:disabled{opacity:.65;cursor:wait;transform:none}.hidden { display:none!important; }
+      .account-box{max-width:560px;margin-top:28px;padding:21px;border:1px solid var(--line);border-radius:15px;background:#fbfcff}.account-box h2{margin:0 0 5px}.account-box p{margin:0 0 15px;font-size:14px}.account-switch{display:block;padding:0;margin-top:13px;color:#285aa9;background:transparent;box-shadow:none;text-decoration:underline;font-size:14px}.account-switch:hover{background:transparent;transform:none;color:#174ea9}.account-error{color:#b62f3b;font-size:14px;margin-top:12px}.saved-results{margin-top:18px}.saved-results h3{margin-bottom:8px}.saved-card{padding:14px;margin-top:8px;border:1px solid #d6e0ee;border-radius:10px;background:white}.saved-card b{font-size:15px}.saved-card p{font-size:13px;margin:4px 0 10px}.saved-score{float:right;color:#2563d9;font-weight:850}.saved-card button{padding:8px 10px;font-size:13px}.account-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:17px}.save-status{margin-top:8px;color:var(--green);font-size:13px;font-weight:750}
       .progress-line { height:7px;background:#e7edf6;border-radius:99px;margin:22px 0 30px;overflow:hidden; } .progress-line i { display:block;height:100%;background:linear-gradient(90deg,#2f70e0,#4e9cff);border-radius:99px;transition:width .25s; } .question-meta { display:flex;justify-content:space-between;gap:15px; font-size:14px;color:var(--muted);font-weight:700; } .question-dimension { color:var(--blue);font-weight:800; } .question { font-size:clamp(25px,4vw,36px);line-height:1.15;letter-spacing:-.03em;margin:22px 0 18px;max-width:720px; } .answer-grid { display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:28px; } .answer-grid button { background:white;color:#204d99;border:1px solid #b9cbe9;box-shadow:none;min-height:72px;padding:10px 6px; } .answer-grid button:hover { background:var(--blue-soft);border-color:var(--blue); } .answer-grid small { display:block;color:#6a7c98;margin-top:4px;font-weight:600; }
       .report-header { display:grid;grid-template-columns:auto 1fr;align-items:center;gap:28px;padding-bottom:27px;border-bottom:1px solid var(--line); } .score-orb { --score:0%; width:142px;height:142px;border-radius:50%;background:conic-gradient(var(--blue) var(--score),#e7edf6 0);display:grid;place-items:center;position:relative; } .score-orb:after { content:"";position:absolute;inset:11px;background:white;border-radius:50%; } .score-value { position:relative;z-index:1;text-align:center;font-size:28px;font-weight:850;letter-spacing:-.04em; } .score-value span { display:block;font-size:12px;letter-spacing:0;color:var(--muted);font-weight:700; } .stage { display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:6px 10px;background:#fff4de;color:#985e00;font-size:13px;font-weight:800; } .stage:before { content:"";width:7px;height:7px;border-radius:50%;background:currentColor; } .headline { margin:10px 0 0;font-size:28px;letter-spacing:-.03em; } .ai-note { display:flex;align-items:center;gap:8px;color:var(--green);font-size:13px;font-weight:750;margin-top:14px; } .ai-note .spark { font-size:17px; }
       .section { margin-top:34px; } .section-heading { display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:16px; } .section-heading p { margin:0;font-size:14px; } .dimension-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:12px; } .dimension-card { border:1px solid var(--line);border-radius:13px;padding:15px;background:#fbfcff; } .dimension-card b { display:block;font-size:13px;line-height:1.25;min-height:34px; } .dimension-card span { display:block;color:var(--blue);font-size:23px;font-weight:850;letter-spacing:-.04em;margin:8px 0; } .mini-bar {height:6px;background:#e5ebf5;border-radius:99px;overflow:hidden}.mini-bar i{display:block;height:100%;background:#4d80dc;border-radius:99px}
@@ -27,8 +28,25 @@
         <h1>See where you are.<br>Know what to do next.</h1>
         <p class="lede">This role-adaptive survey measures readiness across governance, systems, culture, and education—then turns your scores into a concise action plan.</p>
         <label for="role">I am completing this as a</label>
-        <select id="role"><option>Student</option><option>Faculty</option><option>Administrator / Leadership</option><option>IT Staff</option><option>Academic / Business Affairs Staff</option></select>
-        <button onclick="startSurvey()">Start the 12-question survey</button>
+        <select id="role"><option value="student">Student</option><option value="faculty">Faculty</option><option value="administrator_leadership">Administrator / Leadership</option><option value="it_staff">IT Staff</option><option value="academic_business_affairs_staff">Academic / Business Affairs Staff</option></select>
+        <div class="account-box">
+          <div id="authForm">
+            <h2 id="accountTitle">Save your results</h2>
+            <p id="accountDescription">Create an account to save this assessment and return to your results later.</p>
+            <div id="nameField"><label for="fullName">Full name</label><input id="fullName" autocomplete="name" placeholder="Your name"></div>
+            <label for="email">Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.edu">
+            <label for="password">Password</label><input id="password" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters">
+            <button id="startButton" onclick="startSurvey()">Create account and start assessment</button>
+            <button id="accountSwitch" class="account-switch" onclick="toggleAuthMode()">Already have an account? Sign in</button>
+            <div id="accountError" class="account-error hidden"></div>
+          </div>
+          <div id="signedInPanel" class="hidden">
+            <h2 id="welcomeTitle">Your saved assessments</h2>
+            <p>These reports are private to your account. Open a past report or start a new assessment.</p>
+            <div id="savedResults" class="saved-results"></div>
+            <div class="account-actions"><button onclick="beginNewAssessment()">Start a new assessment</button><button class="secondary" onclick="signOut()">Sign out</button></div>
+          </div>
+        </div>
       </section>
       <section id="survey" class="panel hidden">
         <div class="question-meta"><span id="counter"></span><span id="dimension" class="question-dimension"></span></div>
@@ -41,7 +59,7 @@
       <section id="results" class="panel hidden">
         <div class="report-header">
           <div id="scoreOrb" class="score-orb"><div class="score-value" id="scoreValue"></div></div>
-          <div><span id="stage" class="stage"></span><h1 id="headline" class="headline"></h1><p id="summary"></p><div id="aiStatus" class="ai-note"><span class="spark">✦</span><span>Personalized HEAIR action plan</span></div></div>
+          <div><span id="stage" class="stage"></span><h1 id="headline" class="headline"></h1><p id="summary"></p><div id="aiStatus" class="ai-note"><span class="spark">✦</span><span>Personalized HEAIR action plan</span></div><div id="saveStatus" class="save-status"></div></div>
         </div>
         <section class="section"><div class="section-heading"><h2>Readiness by dimension</h2><p>Average of related survey responses</p></div><div id="dimensions" class="dimension-grid"></div></section>
         <section class="section"><div class="section-heading"><h2>Strengths to build on</h2><p>Use these as your foundation</p></div><div id="strengths" class="cards"></div></section>
@@ -64,12 +82,63 @@
         ['Trust & Transparency','Culture'],['Ethics & Responsible Use','Culture'],['Stakeholder Engagement & Awareness','Culture'],
         ['AI Literacy','Education'],['Expertise Development','Education']
       ];
-      let index=0, answers=[], scoreContext=null, chatMessages=[]; const $=id=>document.getElementById(id); const esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-      function startSurvey(){ $('start').classList.add('hidden');$('survey').classList.remove('hidden');renderQuestion(); }
+      let index=0, answers=[], scoreContext=null, chatMessages=[], authMode='register', authToken=localStorage.getItem('heair_auth_token')||'', signedInUser=null, savedResults=[];
+      const $=id=>document.getElementById(id);
+      const esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+      const apiBase=()=>window.HEAIR_API_URL?.replace(/\/$/,'');
+      async function api(path,options={}){
+        if(!apiBase())throw new Error('Account storage is not configured yet.');
+        const response=await fetch(apiBase()+path,{...options,headers:{'content-type':'application/json',...(authToken?{Authorization:`Bearer ${authToken}`}:{}),...(options.headers||{})}});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok)throw new Error(data.error||'Something went wrong. Please try again.');
+        return data;
+      }
+      function showAccountError(message=''){const error=$('accountError');error.textContent=message;error.classList.toggle('hidden',!message);}
+      function toggleAuthMode(){
+        authMode=authMode==='register'?'login':'register';showAccountError('');
+        const login=authMode==='login';$('nameField').classList.toggle('hidden',login);$('accountTitle').textContent=login?'Welcome back':'Save your results';$('accountDescription').textContent=login?'Sign in to view your saved HEAIR assessments.':'Create an account to save this assessment and return to your results later.';$('startButton').textContent=login?'Sign in to view saved results':'Create account and start assessment';$('accountSwitch').textContent=login?'New here? Create an account':'Already have an account? Sign in';$('password').autocomplete=login?'current-password':'new-password';
+      }
+      function showSignedIn(user){
+        signedInUser=user;$('authForm').classList.add('hidden');$('signedInPanel').classList.remove('hidden');$('welcomeTitle').textContent=`${user.fullName||user.email}'s saved assessments`;
+        if(user.role)$('role').value=user.role;
+      }
+      async function loadSavedResults(){
+        const data=await api('/public/results');signedInUser=data.user;savedResults=data.results||[];
+        const holder=$('savedResults');
+        if(!savedResults.length){holder.innerHTML='<h3>No saved assessments yet</h3><p>Complete your first 12-question assessment and its full report will appear here.</p>';return;}
+        holder.innerHTML=`<h3>Your saved assessments</h3>${savedResults.map((item,i)=>{const date=item.completedAt?new Date(item.completedAt).toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}):'Saved assessment';const stage=item.report?.data?.stage||'Readiness report';return `<article class="saved-card"><span class="saved-score">${Number(item.overallScore||0).toFixed(1)} / 100</span><b>${esc(stage)}</b><p>${esc(date)} · ${esc(item.report?.summary||'Your HEAIR assessment report is ready.')}</p><button class="secondary" onclick="openSavedResult(${i})">Open full report</button></article>`;}).join('')}`;
+      }
+      async function startSurvey(){
+        const email=$('email').value.trim(),password=$('password').value,fullName=$('fullName').value.trim(),button=$('startButton');showAccountError('');
+        if(!email||!password||(authMode==='register'&&!fullName)){showAccountError('Enter your name, email address, and password to continue.');return;}
+        button.disabled=true;
+        try{
+          const body=authMode==='register'?{email,password,fullName}:{email,password};
+          const data=await api(`/auth/${authMode==='register'?'register':'login'}`,{method:'POST',body:JSON.stringify(body)});
+          authToken=data.token;localStorage.setItem('heair_auth_token',authToken);signedInUser=data.user;
+          if(authMode==='login'){showSignedIn(data.user);await loadSavedResults();}
+          else await beginNewAssessment();
+        }catch(error){showAccountError(error.message||'We could not sign you in.');}
+        finally{button.disabled=false;}
+      }
+      async function beginNewAssessment(){
+        showAccountError('');
+        try{await api('/public/profile',{method:'PATCH',body:JSON.stringify({role:$('role').value})});}
+        catch(error){showAccountError(error.message||'We could not prepare your account.');return;}
+        index=0;answers=[];scoreContext=null;chatMessages=[];$('results').classList.add('hidden');$('start').classList.add('hidden');$('survey').classList.remove('hidden');renderQuestion();
+      }
+      function signOut(){localStorage.removeItem('heair_auth_token');authToken='';signedInUser=null;savedResults=[];authMode='register';$('authForm').classList.remove('hidden');$('signedInPanel').classList.add('hidden');$('email').value='';$('password').value='';$('fullName').value='';if($('nameField').classList.contains('hidden'))toggleAuthMode();showAccountError('');}
+      function openSavedResult(position){
+        const saved=savedResults[position];if(!saved||!saved.scores?.length)return;
+        const overall=Number(saved.overallScore)||saved.scores.reduce((sum,item)=>sum+Number(item.score),0)/saved.scores.length;
+        const report=saved.report?.data&&typeof saved.report.data==='object'?saved.report.data:localReport(overall,saved.scores);
+        scoreContext={role:saved.role,overallScore:overall,scores:saved.scores};chatMessages=[];$('start').classList.add('hidden');$('results').classList.remove('hidden');renderReport(report,overall,saved.scores);$('aiStatus').innerHTML='<span class="spark">✦</span><span>Saved readiness report</span>';$('saveStatus').textContent=`Saved ${saved.completedAt?new Date(saved.completedAt).toLocaleDateString():'to your account'}.`;window.scrollTo({top:0,behavior:'smooth'});
+      }
       function renderQuestion(){ const q=questions[index];$('counter').textContent=`Question ${index+1} of ${questions.length}`;$('dimension').textContent=q[1];$('progress').style.width=`${index/questions.length*100}%`;$('question').textContent=`How ready are you for ${q[0]}?`;$('answers').innerHTML=[['Low',1,'Not yet in place'],['Fair',2,'Inconsistent'],['Moderate',3,'Developing'],['Good',4,'Working well'],['High',5,'A clear strength']].map(([label,value,note])=>`<button onclick="answer(${value})">${label}<small>${note}</small></button>`).join(''); }
       function answer(value){answers.push((value-1)*25);index++;if(index<questions.length)renderQuestion();else buildReport();}
       function localReport(overall,scores){const ordered=[...scores].sort((a,b)=>a.score-b.score),stage=overall<40?'Early development':overall<60?'Developing':overall<80?'Established':'Leading';return{stage,headline:`${stage} AI readiness`,summary:'Your results identify where a focused next step will make the greatest difference.',strengths:ordered.slice(-2).reverse().map(s=>({title:s.subDimension,score:s.score,description:'A relative strength to sustain, apply, and share with peers.'})),priorities:ordered.slice(0,3).map(s=>({title:s.subDimension,score:s.score,description:'This area needs focused attention to improve overall readiness.',actions:['Set one achievable 30-day goal.','Use approved guidance and institutional support.']}))};}
       function renderReport(report,overall,scores){$('scoreOrb').style.setProperty('--score',`${overall}%`);$('scoreValue').innerHTML=`${overall.toFixed(1)}<span>out of 100</span>`;$('stage').textContent=report.stage;$('headline').textContent=report.headline;$('summary').textContent=report.summary;const groups={};scores.forEach(s=>(groups[s.dimension]??=[]).push(s.score));$('dimensions').innerHTML=Object.entries(groups).map(([dimension,values])=>{const score=values.reduce((a,b)=>a+b,0)/values.length;return `<div class="dimension-card"><b>${esc(dimension)}</b><span>${score.toFixed(0)}</span><div class="mini-bar"><i style="width:${score}%"></i></div></div>`}).join('');$('strengths').innerHTML=report.strengths.map(s=>`<article class="strength"><div class="card-score">${esc(s.score)} / 100</div><h3>${esc(s.title)}</h3><p>${esc(s.description)}</p></article>`).join('');$('priorities').innerHTML=report.priorities.map((p,i)=>`<article class="priority"><div class="priority-num">0${i+1}</div><div><div class="card-score">${esc(p.score)} / 100</div><h3>${esc(p.title)}</h3><p>${esc(p.description)}</p><ul>${p.actions.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div></article>`).join('');}
+      async function saveAssessment(report){return api('/public/results',{method:'POST',body:JSON.stringify({...scoreContext,report})});}
       async function buildReport(){
         $('survey').classList.add('hidden');
         $('loading').classList.remove('hidden');
@@ -85,10 +154,14 @@
             if(response.ok&&data.report){report=data.report;aiReady=true;}
           }catch{}
         }
+        let saveMessage='';
+        try{await saveAssessment(report);saveMessage='Assessment saved to your account.';}
+        catch{saveMessage='Your report is ready, but it could not be saved. Please try again later.';}
         $('loading').classList.add('hidden');
         $('results').classList.remove('hidden');
         renderReport(report,overall,scores);
         $('aiStatus').innerHTML=aiReady?'<span class="spark">✦</span><span>AI-enhanced recommendations, grounded in your score profile</span>':'<span class="spark">✦</span><span>Score-based readiness action plan</span>';
+        $('saveStatus').textContent=saveMessage;
       }
       function openScoreChat(){ if(!scoreContext)return; $('scoreChat').classList.remove('hidden');$('chatInput').focus(); }
       function closeScoreChat(){ $('scoreChat').classList.add('hidden'); }
@@ -113,6 +186,7 @@
       }
       $('chatInput').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();sendScoreChat();}});
       document.addEventListener('keydown',event=>{if(event.key==='Escape')closeScoreChat();});
+      (async()=>{if(!authToken)return;try{const user=await api('/me');showSignedIn(user);await loadSavedResults();}catch{localStorage.removeItem('heair_auth_token');authToken='';}})();
     </script>
   </body>
 </html>
