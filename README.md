@@ -44,6 +44,6 @@ The service starts at `http://localhost:3000`; `GET /health` confirms it is avai
 
 ## GitHub Pages survey
 
-The static survey in `docs/` is deployed by `.github/workflows/pages.yml`. In GitHub, open **Settings → Pages** and set the source to **GitHub Actions**. The survey works with deterministic HEAIR reports immediately.
+The static survey in `docs/` is deployed by `.github/workflows/pages.yml`. In GitHub, open **Settings → Pages** and set the source to **GitHub Actions**. The survey works with deterministic HEAIR reports immediately. The repository-root `index.html` redirects to `docs/` as a fallback if Pages is accidentally configured to deploy the branch root.
 
 For Claude-enhanced summaries, deploy this API separately (GitHub Pages cannot run server code), set `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` as server environment variables, then set the deployed API URL in `docs/config.js`. Never put an AI API key in `docs/`, repository secrets committed to Git, or browser JavaScript. Protect `/public/recommendations` with a rate limit/WAF before production use.
