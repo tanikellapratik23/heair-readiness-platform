@@ -28,7 +28,7 @@
         <h1>See where you are.<br>Know what to do next.</h1>
         <p class="lede">This role-adaptive survey measures readiness across governance, systems, culture, and education—then turns your scores into a concise action plan.</p>
         <label for="role">I am completing this as a</label>
-        <select id="role"><option value="student">Student</option><option value="faculty">Faculty</option><option value="administrator_leadership">Administrator / Leadership</option><option value="it_staff">IT Staff</option><option value="academic_business_affairs_staff">Academic / Business Affairs Staff</option></select>
+        <select id="role"><option value="student">Student</option><option value="faculty">Faculty</option><option value="leadership">Leadership</option><option value="business_affairs">Business Affairs</option><option value="communications">Communications</option></select>
         <div class="account-box">
           <div id="authForm">
             <h2 id="accountTitle">Save your results</h2>
@@ -75,14 +75,10 @@
       </div>
     </section>
     <script src="config.js"></script>
+    <script src="questions.js"></script>
     <script>
-      const questions=[
-        ['Policy & Compliance','Governance & Strategy'],['AI Governance & Access','Governance & Strategy'],['Leadership & Resourcing','Governance & Strategy'],['Monitoring & Evaluation','Governance & Strategy'],
-        ['Infrastructure, Privacy & Security','Systems & Infrastructure'],['Data','Systems & Infrastructure'],['AI Integration & Use Cases','Systems & Infrastructure'],
-        ['Trust & Transparency','Culture'],['Ethics & Responsible Use','Culture'],['Stakeholder Engagement & Awareness','Culture'],
-        ['AI Literacy','Education'],['Expertise Development','Education']
-      ];
-      let index=0, answers=[], scoreContext=null, chatMessages=[], authMode='register', authToken=localStorage.getItem('heair_auth_token')||'', signedInUser=null, savedResults=[];
+      const questionBank=window.HEAIR_QUESTION_BANK||{};
+      let questions=[], index=0, answers=[], scoreContext=null, chatMessages=[], authMode='register', authToken=localStorage.getItem('heair_auth_token')||'', signedInUser=null, savedResults=[];
       const $=id=>document.getElementById(id);
       const esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
       const apiBase=()=>window.HEAIR_API_URL?.replace(/\/$/,'');
@@ -123,6 +119,8 @@
       }
       async function beginNewAssessment(){
         showAccountError('');
+        questions=questionBank[$('role').value]||[];
+        if(questions.length!==12){showAccountError('This role’s assessment questions are unavailable. Please refresh and try again.');return;}
         try{await api('/public/profile',{method:'PATCH',body:JSON.stringify({role:$('role').value})});}
         catch(error){showAccountError(error.message||'We could not prepare your account.');return;}
         index=0;answers=[];scoreContext=null;chatMessages=[];$('results').classList.add('hidden');$('start').classList.add('hidden');$('survey').classList.remove('hidden');renderQuestion();
@@ -134,7 +132,7 @@
         const report=saved.report?.data&&typeof saved.report.data==='object'?saved.report.data:localReport(overall,saved.scores);
         scoreContext={role:saved.role,overallScore:overall,scores:saved.scores};chatMessages=[];$('start').classList.add('hidden');$('results').classList.remove('hidden');renderReport(report,overall,saved.scores);$('aiStatus').innerHTML='<span class="spark">✦</span><span>Saved readiness report</span>';$('saveStatus').textContent=`Saved ${saved.completedAt?new Date(saved.completedAt).toLocaleDateString():'to your account'}.`;window.scrollTo({top:0,behavior:'smooth'});
       }
-      function renderQuestion(){ const q=questions[index];$('counter').textContent=`Question ${index+1} of ${questions.length}`;$('dimension').textContent=q[1];$('progress').style.width=`${index/questions.length*100}%`;$('question').textContent=`How ready are you for ${q[0]}?`;$('answers').innerHTML=[['Low',1,'Not yet in place'],['Fair',2,'Inconsistent'],['Moderate',3,'Developing'],['Good',4,'Working well'],['High',5,'A clear strength']].map(([label,value,note])=>`<button onclick="answer(${value})">${label}<small>${note}</small></button>`).join(''); }
+      function renderQuestion(){ const q=questions[index];$('counter').textContent=`Question ${index+1} of ${questions.length}`;$('dimension').textContent=q.dimension;$('progress').style.width=`${index/questions.length*100}%`;$('question').textContent=q.prompt;$('answers').innerHTML=[['Low',1,'Not yet in place'],['Fair',2,'Inconsistent'],['Moderate',3,'Developing'],['Good',4,'Working well'],['High',5,'A clear strength']].map(([label,value,note])=>`<button onclick="answer(${value})">${label}<small>${note}</small></button>`).join(''); }
       function answer(value){answers.push((value-1)*25);index++;if(index<questions.length)renderQuestion();else buildReport();}
       function localReport(overall,scores){const ordered=[...scores].sort((a,b)=>a.score-b.score),stage=overall<40?'Early development':overall<60?'Developing':overall<80?'Established':'Leading';return{stage,headline:`${stage} AI readiness`,summary:'Your results identify where a focused next step will make the greatest difference.',strengths:ordered.slice(-2).reverse().map(s=>({title:s.subDimension,score:s.score,description:'A relative strength to sustain, apply, and share with peers.'})),priorities:ordered.slice(0,3).map(s=>({title:s.subDimension,score:s.score,description:'This area needs focused attention to improve overall readiness.',actions:['Set one achievable 30-day goal.','Use approved guidance and institutional support.']}))};}
       function renderReport(report,overall,scores){$('scoreOrb').style.setProperty('--score',`${overall}%`);$('scoreValue').innerHTML=`${overall.toFixed(1)}<span>out of 100</span>`;$('stage').textContent=report.stage;$('headline').textContent=report.headline;$('summary').textContent=report.summary;const groups={};scores.forEach(s=>(groups[s.dimension]??=[]).push(s.score));$('dimensions').innerHTML=Object.entries(groups).map(([dimension,values])=>{const score=values.reduce((a,b)=>a+b,0)/values.length;return `<div class="dimension-card"><b>${esc(dimension)}</b><span>${score.toFixed(0)}</span><div class="mini-bar"><i style="width:${score}%"></i></div></div>`}).join('');$('strengths').innerHTML=report.strengths.map(s=>`<article class="strength"><div class="card-score">${esc(s.score)} / 100</div><h3>${esc(s.title)}</h3><p>${esc(s.description)}</p></article>`).join('');$('priorities').innerHTML=report.priorities.map((p,i)=>`<article class="priority"><div class="priority-num">0${i+1}</div><div><div class="card-score">${esc(p.score)} / 100</div><h3>${esc(p.title)}</h3><p>${esc(p.description)}</p><ul>${p.actions.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div></article>`).join('');}
@@ -142,7 +140,7 @@
       async function buildReport(){
         $('survey').classList.add('hidden');
         $('loading').classList.remove('hidden');
-        const scores=questions.map((q,i)=>({subDimension:q[0],dimension:q[1],score:answers[i]}));
+        const scores=questions.map((q,i)=>({subDimension:q.subDimension,dimension:q.dimension,score:answers[i]}));
         const overall=answers.reduce((a,b)=>a+b,0)/answers.length;
         scoreContext={role:$('role').value,overallScore:overall,scores};
         chatMessages=[];

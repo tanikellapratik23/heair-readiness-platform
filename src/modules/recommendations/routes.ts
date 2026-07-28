@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { RecommendationCategory, StakeholderRole } from "@prisma/client";
+import { RecommendationCategory } from "@prisma/client";
 import { z } from "zod";
 import { currentUser } from "../../lib/auth.js";
 import { prisma } from "../../lib/prisma.js";
@@ -29,9 +29,10 @@ const reportInput = z.object({
   strengths: z.array(z.object({ title: z.string().min(1).max(120), score: z.number().min(0).max(100), description: z.string().min(1).max(800) })).max(3),
   priorities: z.array(z.object({ title: z.string().min(1).max(120), score: z.number().min(0).max(100), description: z.string().min(1).max(800), actions: z.array(z.string().min(1).max(300)).max(4) })).max(3)
 });
-const profileInput = z.object({ role: z.nativeEnum(StakeholderRole) });
+const assessmentRole = z.enum(["student", "faculty", "leadership", "business_affairs", "communications"]);
+const profileInput = z.object({ role: assessmentRole });
 const saveResultInput = z.object({
-  role: z.nativeEnum(StakeholderRole),
+  role: assessmentRole,
   overallScore: z.number().min(0).max(100),
   scores: z.array(z.object({ subDimension: z.string().min(1).max(100), dimension: z.string().min(1).max(100), score: z.number().min(0).max(100) })).length(12),
   report: reportInput

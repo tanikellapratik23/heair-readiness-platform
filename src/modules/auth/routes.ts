@@ -1,13 +1,13 @@
 import type { FastifyInstance } from "fastify";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { StakeholderRole } from "@prisma/client";
 import { prisma } from "../../lib/prisma.js";
 import { currentUser } from "../../lib/auth.js";
 import { fail } from "../../lib/errors.js";
 
 const registration = z.object({ email: z.string().email(), password: z.string().min(8), fullName: z.string().min(1).optional() });
-const profile = z.object({ role: z.nativeEnum(StakeholderRole), departmentId: z.string().uuid(), institutionId: z.string().uuid().optional() });
+const assessmentRole = z.enum(["student", "faculty", "leadership", "business_affairs", "communications"]);
+const profile = z.object({ role: assessmentRole, departmentId: z.string().uuid(), institutionId: z.string().uuid().optional() });
 
 export async function authRoutes(app: FastifyInstance) {
   app.post("/auth/register", async (request, reply) => {

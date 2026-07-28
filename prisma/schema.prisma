@@ -10,6 +10,10 @@ datasource db {
 enum StakeholderRole {
   student
   faculty
+  leadership
+  business_affairs
+  communications
+  // Legacy values are retained only so existing saved records remain readable.
   administrator_leadership
   it_staff
   academic_business_affairs_staff
