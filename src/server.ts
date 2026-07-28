@@ -7,6 +7,7 @@ import { authRoutes } from "./modules/auth/routes.js";
 import { assessmentRoutes } from "./modules/assessments/routes.js";
 import { reportRoutes } from "./modules/reports/routes.js";
 import { analyticsRoutes } from "./modules/analytics/routes.js";
+import { publicRecommendationRoutes } from "./modules/recommendations/routes.js";
 
 const app = Fastify({ logger: true });
 await app.register(cors, { origin: true });
@@ -20,6 +21,7 @@ await app.register(authRoutes);
 await app.register(assessmentRoutes);
 await app.register(reportRoutes);
 await app.register(analyticsRoutes);
+await app.register(publicRecommendationRoutes);
 
 const port = Number(process.env.PORT ?? 3000);
 await app.listen({ port, host: "0.0.0.0" });

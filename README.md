@@ -41,3 +41,9 @@ The service starts at `http://localhost:3000`; `GET /health` confirms it is avai
 - `knowledge_documents`/`knowledge_chunks` and `scripts/ingest_knowledge.ts` provide the grounded RAG ingestion path. Configure an embedding provider to populate the `vector(1536)` column and replace the deterministic recommendation generator with a structured-output LLM adapter for production.
 - Analytics access defaults to self-only. Promote users to `admin` or `dept_viewer` through a controlled admin process before exposing dashboard routes.
 - Use a production migration pipeline, TLS, secret management, audit logs, and SSO/OIDC before handling institutional data.
+
+## GitHub Pages survey
+
+The static survey in `docs/` is deployed by `.github/workflows/pages.yml`. In GitHub, open **Settings → Pages** and set the source to **GitHub Actions**. The survey works with deterministic HEAIR reports immediately.
+
+For Claude-enhanced summaries, deploy this API separately (GitHub Pages cannot run server code), set `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL` as server environment variables, then set the deployed API URL in `docs/config.js`. Never put an AI API key in `docs/`, repository secrets committed to Git, or browser JavaScript. Protect `/public/recommendations` with a rate limit/WAF before production use.
