@@ -1,4 +1,5 @@
 import { PrismaClient, StakeholderRole } from "@prisma/client";
+import { HEAIR_DOCUMENT_ID, HEAIR_KNOWLEDGE_CHUNKS, HEAIR_SOURCE_CITATION, HEAIR_SOURCE_TITLE } from "../src/modules/knowledge/heair-framework.js";
 
 const prisma = new PrismaClient();
 
@@ -46,13 +47,21 @@ async function main() {
   for (const [id, label, description, sortOrder] of dimensions) await prisma.dimension.upsert({ where: { id }, update: { label, description, sortOrder }, create: { id, label, description, sortOrder } });
   for (const [id, dimensionId, label, description, sortOrder] of subDimensions) await prisma.subDimension.upsert({ where: { id }, update: { dimensionId, label, description, sortOrder }, create: { id, dimensionId, label, description, sortOrder } });
 
+  await prisma.knowledgeDocument.upsert({
+    where: { id: HEAIR_DOCUMENT_ID },
+    update: { sourceTitle: HEAIR_SOURCE_TITLE, sourceType: "heair_paper", sourceUrlOrCitation: HEAIR_SOURCE_CITATION, rawText: HEAIR_KNOWLEDGE_CHUNKS.map((chunk) => chunk.text).join("\n\n") },
+    create: { id: HEAIR_DOCUMENT_ID, sourceTitle: HEAIR_SOURCE_TITLE, sourceType: "heair_paper", sourceUrlOrCitation: HEAIR_SOURCE_CITATION, rawText: HEAIR_KNOWLEDGE_CHUNKS.map((chunk) => chunk.text).join("\n\n") }
+  });
+  await prisma.knowledgeChunk.deleteMany({ where: { documentId: HEAIR_DOCUMENT_ID } });
+  await prisma.knowledgeChunk.createMany({ data: HEAIR_KNOWLEDGE_CHUNKS.map((chunk) => ({ documentId: HEAIR_DOCUMENT_ID, chunkText: chunk.text, chunkIndex: chunk.chunkIndex, metadata: chunk.metadata })) });
+
   await prisma.question.deleteMany({ where: { sessionScoped: false } });
   for (const role of Object.keys(prompts) as StakeholderRole[]) {
     for (let i = 0; i < subDimensions.length; i++) {
       await prisma.question.create({ data: { role, subDimensionId: subDimensions[i][0], prompt: prompts[role][i], questionType: "likert_5", weight: 1, isAdaptiveSeed: i === 0 || i === 8 } });
     }
   }
-  console.log("Seeded HEAIR taxonomy and 60 role-adaptive base questions.");
+  console.log("Seeded HEAIR taxonomy, 60 role-adaptive base questions, and source-grounded HEAIR retrieval chunks.");
 }
 
 main().finally(() => prisma.$disconnect());

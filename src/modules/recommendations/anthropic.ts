@@ -1,3 +1,5 @@
+import { formatHeairContext, retrieveHeairContext } from "../knowledge/retrieval.js";
+
 const fallback = "AI enhancement is not configured. Your report uses the HEAIR scoring and recommendations engine.";
 
 type Score = { subDimension: string; score: number };
@@ -26,13 +28,14 @@ function fallbackReport(overallScore: number, scores: PublicReadinessScore[]): P
 export async function generateAiSummary(role: string, overallScore: number, weakest: Score[], strongest: Score[]) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return fallback;
+  const heairContext = formatHeairContext(await retrieveHeairContext(role, [...weakest, ...strongest].map((score) => ({ ...score, dimension: "" }))));
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
       model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
       max_tokens: 300,
-      system: "You are a higher-education AI readiness advisor. Give a concise, practical, evidence-aware report. Do not invent citations or claim access to institutional data.",
+      system: "You are a higher-education AI readiness advisor. The retrieved HEAIR framework context below is your primary source. Give a concise, practical, evidence-aware report that follows its role-specific guidance. Do not invent citations, institutional facts, or policies. Do not quote the source at length.\n\n" + heairContext,
       messages: [{ role: "user", content: JSON.stringify({ role, overallScore, weakest, strongest }) }]
     })
   });
@@ -44,13 +47,14 @@ export async function generateAiSummary(role: string, overallScore: number, weak
 
 export async function generatePublicAiReport(role: string, overallScore: number, scores: PublicReadinessScore[]): Promise<PublicAiReport> {
   if (!process.env.ANTHROPIC_API_KEY) return fallbackReport(overallScore, scores);
+  const heairContext = formatHeairContext(await retrieveHeairContext(role, scores));
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
       model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
       max_tokens: 700,
-      system: "You are a practical higher-education AI readiness advisor. Use only the scores supplied. Return raw JSON only: no Markdown, code fences, citations, or introductory text. Keep every description to 24 words or fewer and every action to 16 words or fewer. Be specific, encouraging, and role-aware.",
+      system: "You are a practical higher-education AI readiness advisor. The retrieved HEAIR framework context below is the primary source for your advice. Combine it with only the supplied score names and values; do not invent institutional facts, policies, citations, tools, or data. Return raw JSON only: no Markdown, code fences, citations, or introductory text. Keep every description to 24 words or fewer and every action to 16 words or fewer. Be specific, encouraging, and role-aware. Do not quote the source at length.\n\n" + heairContext,
       messages: [{ role: "user", content: JSON.stringify({
         role, overallScore, scores,
         requiredShape: {

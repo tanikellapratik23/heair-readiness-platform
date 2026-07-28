@@ -70,7 +70,7 @@
     <section id="scoreChat" class="chat-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="chatTitle">
       <div class="chat-window">
         <header class="chat-header"><div><span class="eyebrow">Your AI readiness coach</span><h2 id="chatTitle">Let’s make your score useful.</h2><p>Ask about a result, a priority, or a realistic next step.</p></div><button class="chat-close" onclick="closeScoreChat()" aria-label="Close score chat">×</button></header>
-        <div id="chatBody" class="chat-body"><div class="chat-intro">Your coach has your role and score profile as context. It can help turn this report into practical next steps.</div><div class="suggestions"><button class="suggestion" onclick="useSuggestion('What should I focus on first this month?')">What should I focus on first?</button><button class="suggestion" onclick="useSuggestion('How can I improve my lowest score in a practical way?')">How can I improve my lowest score?</button><button class="suggestion" onclick="useSuggestion('Give me a simple 30-day improvement plan.')">Give me a 30-day plan</button><button class="suggestion" onclick="useSuggestion('What does my overall score mean for my role?')">What does my score mean?</button></div><div id="chatMessages"></div></div>
+        <div id="chatBody" class="chat-body"><div class="chat-intro">Your coach uses your role, score profile, and retrieved guidance from the HEAIR framework paper to turn this report into practical next steps.</div><div class="suggestions"><button class="suggestion" onclick="useSuggestion('What should I focus on first this month?')">What should I focus on first?</button><button class="suggestion" onclick="useSuggestion('How can I improve my lowest score in a practical way?')">How can I improve my lowest score?</button><button class="suggestion" onclick="useSuggestion('Give me a simple 30-day improvement plan.')">Give me a 30-day plan</button><button class="suggestion" onclick="useSuggestion('What does my overall score mean for my role?')">What does my score mean?</button></div><div id="chatMessages"></div></div>
         <div class="chat-composer"><textarea id="chatInput" rows="1" maxlength="1200" placeholder="Ask about your score…"></textarea><button id="chatSend" onclick="sendScoreChat()">Send</button></div><p class="chat-hint">Press Enter to send · Shift + Enter for a new line</p>
       </div>
     </section>
@@ -160,7 +160,7 @@
         $('loading').classList.add('hidden');
         $('results').classList.remove('hidden');
         renderReport(report,overall,scores);
-        $('aiStatus').innerHTML=aiReady?'<span class="spark">✦</span><span>AI-enhanced recommendations, grounded in your score profile</span>':'<span class="spark">✦</span><span>Score-based readiness action plan</span>';
+        $('aiStatus').innerHTML=aiReady?'<span class="spark">✦</span><span>AI recommendations grounded in the HEAIR framework paper</span>':'<span class="spark">✦</span><span>Score-based readiness action plan</span>';
         $('saveStatus').textContent=saveMessage;
       }
       function openScoreChat(){ if(!scoreContext)return; $('scoreChat').classList.remove('hidden');$('chatInput').focus(); }

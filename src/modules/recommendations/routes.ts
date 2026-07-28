@@ -3,6 +3,7 @@ import { RecommendationCategory, StakeholderRole } from "@prisma/client";
 import { z } from "zod";
 import { currentUser } from "../../lib/auth.js";
 import { prisma } from "../../lib/prisma.js";
+import { formatHeairContext, retrieveHeairContext } from "../knowledge/retrieval.js";
 import { generatePublicAiReport } from "./anthropic.js";
 
 const input = z.object({
@@ -138,13 +139,14 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
     if (!body.success) return reply.code(400).send({ error: "Invalid score chat request." });
     if (!process.env.ANTHROPIC_API_KEY) return reply.code(503).send({ error: "AI score chat is not configured." });
     try {
+      const heairContext = formatHeairContext(await retrieveHeairContext(body.data.role, body.data.scores));
       const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
         body: JSON.stringify({
           model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
           max_tokens: 350,
-          system: `You are a friendly HEAIR readiness coach. Speak in clear, natural English for a ${body.data.role}. Answer only from the supplied score profile and conversation. Give practical, achievable suggestions in 140 words or fewer. Use two to four short paragraphs, or at most three short bullets. Do not use headings, tables, citations, jargon, or Markdown formatting. Never invent an institution's policy; advise the user to check their institution when policy-specific details matter. Score profile: ${JSON.stringify({ overallScore: body.data.overallScore, scores: body.data.scores })}`,
+          system: `You are a friendly HEAIR readiness coach. The retrieved HEAIR framework context below is your primary source. Speak in clear, natural English for a ${body.data.role}. Answer only from the source context, supplied score profile, and conversation. Give practical, achievable suggestions in 140 words or fewer. Use two to four short paragraphs, or at most three short bullets. Do not use headings, tables, citations, jargon, or Markdown formatting. Never invent an institution's policy; advise the user to check their institution when policy-specific details matter. Do not quote the source at length. Score profile: ${JSON.stringify({ overallScore: body.data.overallScore, scores: body.data.scores })}\n\nRetrieved HEAIR framework context:\n${heairContext}`,
           messages: body.data.messages
         })
       });
