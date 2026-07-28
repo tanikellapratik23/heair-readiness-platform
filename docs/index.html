@@ -62,7 +62,24 @@
       function answer(value){answers.push((value-1)*25);index++;if(index<questions.length)renderQuestion();else buildReport();}
       function localReport(overall,scores){const ordered=[...scores].sort((a,b)=>a.score-b.score),stage=overall<40?'Early development':overall<60?'Developing':overall<80?'Established':'Leading';return{stage,headline:`${stage} AI readiness`,summary:'Your results identify where a focused next step will make the greatest difference.',strengths:ordered.slice(-2).reverse().map(s=>({title:s.subDimension,score:s.score,description:'A relative strength to sustain, apply, and share with peers.'})),priorities:ordered.slice(0,3).map(s=>({title:s.subDimension,score:s.score,description:'This area needs focused attention to improve overall readiness.',actions:['Set one achievable 30-day goal.','Use approved guidance and institutional support.']}))};}
       function renderReport(report,overall,scores){$('scoreOrb').style.setProperty('--score',`${overall}%`);$('scoreValue').innerHTML=`${overall.toFixed(1)}<span>out of 100</span>`;$('stage').textContent=report.stage;$('headline').textContent=report.headline;$('summary').textContent=report.summary;const groups={};scores.forEach(s=>(groups[s.dimension]??=[]).push(s.score));$('dimensions').innerHTML=Object.entries(groups).map(([dimension,values])=>{const score=values.reduce((a,b)=>a+b,0)/values.length;return `<div class="dimension-card"><b>${esc(dimension)}</b><span>${score.toFixed(0)}</span><div class="mini-bar"><i style="width:${score}%"></i></div></div>`}).join('');$('strengths').innerHTML=report.strengths.map(s=>`<article class="strength"><div class="card-score">${esc(s.score)} / 100</div><h3>${esc(s.title)}</h3><p>${esc(s.description)}</p></article>`).join('');$('priorities').innerHTML=report.priorities.map((p,i)=>`<article class="priority"><div class="priority-num">0${i+1}</div><div><div class="card-score">${esc(p.score)} / 100</div><h3>${esc(p.title)}</h3><p>${esc(p.description)}</p><ul>${p.actions.map(a=>`<li>${esc(a)}</li>`).join('')}</ul></div></article>`).join('');}
-      async function buildReport(){ $('survey').classList.add('hidden');$('loading').classList.remove('hidden');const scores=questions.map((q,i)=>({subDimension:q[0],dimension:q[1],score:answers[i]}),overall=answers.reduce((a,b)=>a+b,0)/answers.length;let report=localReport(overall,scores),aiReady=false;if(window.HEAIR_API_URL){try{const response=await fetch(window.HEAIR_API_URL.replace(/\/$/,'')+'/public/recommendations',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({role:$('role').value,overallScore:overall,scores})});const data=await response.json();if(response.ok&&data.report){report=data.report;aiReady=true;}}catch{}}$('loading').classList.add('hidden');$('results').classList.remove('hidden');renderReport(report,overall,scores);$('aiStatus').innerHTML=aiReady?'<span class="spark">✦</span><span>AI-enhanced recommendations, grounded in your score profile</span>':'<span class="spark">✦</span><span>Score-based readiness action plan</span>';}
+      async function buildReport(){
+        $('survey').classList.add('hidden');
+        $('loading').classList.remove('hidden');
+        const scores=questions.map((q,i)=>({subDimension:q[0],dimension:q[1],score:answers[i]}));
+        const overall=answers.reduce((a,b)=>a+b,0)/answers.length;
+        let report=localReport(overall,scores),aiReady=false;
+        if(window.HEAIR_API_URL){
+          try{
+            const response=await fetch(window.HEAIR_API_URL.replace(/\/$/,'')+'/public/recommendations',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({role:$('role').value,overallScore:overall,scores})});
+            const data=await response.json();
+            if(response.ok&&data.report){report=data.report;aiReady=true;}
+          }catch{}
+        }
+        $('loading').classList.add('hidden');
+        $('results').classList.remove('hidden');
+        renderReport(report,overall,scores);
+        $('aiStatus').innerHTML=aiReady?'<span class="spark">✦</span><span>AI-enhanced recommendations, grounded in your score profile</span>':'<span class="spark">✦</span><span>Score-based readiness action plan</span>';
+      }
     </script>
   </body>
 </html>
