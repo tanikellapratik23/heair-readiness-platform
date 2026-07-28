@@ -45,6 +45,7 @@ const subDimensionIds: Record<string, string> = {
   "AI Literacy": "ai_literacy", "Expertise Development": "expertise_development"
 };
 const dimensionIds: Record<string, string> = { "Governance & Strategy": "governance_strategy", "Systems & Infrastructure": "systems_infrastructure", Culture: "culture", Education: "education" };
+const activeAssessmentRoles = ["student", "faculty", "leadership", "business_affairs", "communications"] as const;
 
 function toSavedReport(data: z.infer<typeof reportInput>) {
   const byTitle = (title: string) => subDimensionIds[title] ?? null;
@@ -65,6 +66,24 @@ function toSavedReport(data: z.infer<typeof reportInput>) {
  * rate limiting/WAF controls before production deployment to avoid API-cost abuse.
  */
 export async function publicRecommendationRoutes(app: FastifyInstance) {
+  app.get("/public/insights", async (_request, reply) => {
+    try {
+      const sessions = await prisma.assessmentSession.findMany({
+        where: { status: "completed", roleAtTime: { in: [...activeAssessmentRoles] } },
+        select: { roleAtTime: true, scoreResult: { select: { overallScore: true } } }
+      });
+      const insights = activeAssessmentRoles.map((role) => {
+        const scores = sessions.filter((session) => session.roleAtTime === role && session.scoreResult).map((session) => Number(session.scoreResult?.overallScore));
+        // Do not expose a role average until at least three respondents protect anonymity.
+        if (scores.length < 3) return { role, responseCount: scores.length, averageScore: null };
+        return { role, responseCount: scores.length, averageScore: Math.round((scores.reduce((sum, score) => sum + score, 0) / scores.length) * 10) / 10 };
+      });
+      return { insights };
+    } catch {
+      return reply.code(503).send({ error: "Assessment insights are temporarily unavailable." });
+    }
+  });
+
   app.patch("/public/profile", async (request, reply) => {
     const body = profileInput.safeParse(request.body);
     if (!body.success) return reply.code(400).send({ error: "Invalid profile." });
