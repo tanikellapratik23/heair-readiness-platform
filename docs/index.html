@@ -37,7 +37,7 @@
             <p class="insight-label">READINESS INSIGHT</p>
             <div id="insightContent">
               <div id="insightRole" class="insight-role">Student</div>
-              <div id="insightValue" class="insight-value">—</div>
+              <div id="insightValue" class="insight-value">Pending</div>
               <div id="insightCaption" class="insight-caption">Average readiness</div>
               <p id="insightDescription" class="insight-description">Student readiness connects responsible AI use, academic integrity, data privacy, and learning support.</p>
             </div>
@@ -115,7 +115,7 @@
       function renderInsight(){
         const content=$('insightContent');content.classList.remove('insight-changing');void content.offsetWidth;content.classList.add('insight-changing');
         $('insightRole').textContent=studentInsight.label;
-        $('insightValue').innerHTML=studentAverage?`${studentAverage.averageScore.toFixed(1)}<span> / 100</span>`:'—';
+        $('insightValue').innerHTML=studentAverage?`${studentAverage.averageScore.toFixed(1)}<span> / 100</span>`:'Pending';
         $('insightCaption').textContent='Average readiness';
         $('insightDescription').textContent=studentAverage?`${studentInsight.description} This score reflects completed Student assessments.`:'Student readiness connects responsible AI use, academic integrity, data privacy, and learning support.';
       }
