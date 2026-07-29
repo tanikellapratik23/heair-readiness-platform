@@ -67,9 +67,11 @@
                 <div class="setup-step"><i>2</i> Complete your account</div>
                 <h2>Set your permanent assessment details</h2>
                 <p>Your stakeholder role and institution are used for every saved assessment and anonymous university comparison.</p>
+                <p id="profileAccountHint" class="field-hint"></p>
                 <label for="profileInstitutionName">College or university</label><input id="profileInstitutionName" list="institutionOptions" autocomplete="organization" placeholder="Start typing your institution name" oninput="searchInstitutions('profileInstitutionName')">
                 <p class="field-hint">These details cannot be changed after they are saved.</p>
                 <button id="completeProfileButton" onclick="completeProfile()">Save account details</button>
+                <button class="account-switch" onclick="signOut()">Use a different account</button>
                 <div id="profileError" class="account-error hidden"></div>
               </div>
               <div id="signedInPanel" class="hidden">
@@ -172,7 +174,7 @@
         $('profileSetup').classList.toggle('hidden',!needsSetup);$('signedInPanel').classList.toggle('hidden',needsSetup);$('rolePicker').classList.toggle('hidden',!needsSetup);$('accountSetupGrid').classList.toggle('single',!needsSetup);
         if(needsSetup){
           $('accountAreaTitle').textContent='Complete your account';$('accountAreaDescription').textContent='Add the details that make your assessment and university comparison meaningful.';
-          $('profileInstitutionName').value=user.institution?.name||'';return;
+          $('profileInstitutionName').value=user.institution?.name||'';$('profileAccountHint').textContent=`You are signed in as ${user.email}. Your name, email address, and password are already saved.`;return;
         }
         $('accountAreaTitle').textContent='Your readiness history';$('accountAreaDescription').textContent=`Your ${user.institution.name} assessments are private to your account.`;$('welcomeTitle').textContent=`${user.fullName||user.email}'s saved assessments`;
       }
