@@ -211,14 +211,16 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
     if (!body.success) return reply.code(400).send({ error: "Invalid score chat request." });
     if (!process.env.ANTHROPIC_API_KEY) return reply.code(503).send({ error: "AI score chat is not configured." });
     try {
-      const heairContext = formatHeairContext(await retrieveHeairContext(body.data.role, body.data.scores));
+      const latestQuestion = [...body.data.messages].reverse().find((message) => message.role === "user")?.content ?? "";
+      const retrievedContext = await retrieveHeairContext(body.data.role, body.data.scores, 6, latestQuestion);
+      const heairContext = formatHeairContext(retrievedContext);
       const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: { "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
         body: JSON.stringify({
           model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
           max_tokens: 350,
-          system: `You are a friendly HEAIR readiness coach. The retrieved HEAIR framework context below is your primary source. Speak in clear, natural English for a ${body.data.role}. Answer only from the source context, supplied score profile, and conversation. Give practical, achievable suggestions in 140 words or fewer. Use two to four short paragraphs, or at most three short bullets. Do not use headings, tables, citations, jargon, or Markdown formatting. Never invent an institution's policy; advise the user to check their institution when policy-specific details matter. Do not quote the source at length. Score profile: ${JSON.stringify({ overallScore: body.data.overallScore, scores: body.data.scores })}\n\nRetrieved HEAIR framework context:\n${heairContext}`,
+          system: `You are a friendly HEAIR readiness coach. The retrieved HEAIR framework context below is your source of truth. Speak in clear, natural English for a ${body.data.role}. Answer the user's exact question first, then connect the answer to their score profile and role. Give at least one concrete activity, safeguard, or practice that appears in the retrieved HEAIR context. Do not invent courses, tools, institutional policies, budgets, or facts not supported by the retrieved context. Never claim to know the user's institution's policies; advise them to verify local policy when needed. Give practical guidance in 140 words or fewer, using two to four short paragraphs or at most three short bullets. Do not use headings, tables, citations, jargon, or Markdown formatting. Score profile: ${JSON.stringify({ overallScore: body.data.overallScore, scores: body.data.scores })}\n\nRetrieved HEAIR framework context:\n${heairContext}`,
           messages: body.data.messages
         })
       });
@@ -226,7 +228,10 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
       const payload = await response.json() as { content?: Array<{ type: string; text?: string }> };
       const message = payload.content?.find((part) => part.type === "text")?.text?.trim();
       if (!message) return reply.code(502).send({ error: "The AI coach returned no answer." });
-      return { message };
+      return {
+        message,
+        sources: [...new Map(retrievedContext.map((chunk) => [`${chunk.sourceTitle}:${chunk.section}`, { title: chunk.sourceTitle, section: chunk.section, citation: chunk.citation }])).values()].slice(0, 3)
+      };
     } catch { return reply.code(502).send({ error: "The AI coach is temporarily unavailable." }); }
   });
 }
