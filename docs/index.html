@@ -192,7 +192,7 @@
           const data=await api(`/auth/${authMode==='register'?'register':'login'}`,{method:'POST',body:JSON.stringify(body)});
           authToken=data.token;localStorage.setItem('heair_auth_token',authToken);signedInUser=data.user;
           if(authMode==='login'){showSignedIn(data.user);await loadSavedResults();}
-          else await beginNewAssessment();
+          else {await synchronizeAccountProfile(role,institutionName);await beginNewAssessment(role,institutionName);}
         }catch(error){showAccountError(error.message||'We could not sign you in.');}
         finally{window.clearTimeout(waitingNotice);button.disabled=false;button.textContent=buttonText;}
       }
@@ -205,10 +205,24 @@
         catch(exception){error.textContent=exception.message||'We could not save your account details.';error.classList.remove('hidden');}
         finally{button.disabled=false;button.textContent=original;}
       }
-      async function beginNewAssessment(){
+      async function synchronizeAccountProfile(selectedRole=$('role').value,selectedInstitutionName=$('institutionName').value.trim()){
+        try{signedInUser=await api('/me');}catch{}
+        if(signedInUser?.role&&signedInUser?.institution?.id)return signedInUser;
+        if(!selectedRole||!selectedInstitutionName)return signedInUser;
+        try{signedInUser=await api('/public/profile',{method:'PATCH',body:JSON.stringify({role:selectedRole,institutionName:selectedInstitutionName})});}
+        catch{}
+        return signedInUser;
+      }
+      async function beginNewAssessment(fallbackRole=$('role').value,fallbackInstitutionName=$('institutionName').value.trim()){
         showAccountError('');
-        const selectedRole=signedInUser?.role?legacyRoleMap[signedInUser.role]||signedInUser.role:'';
-        if(!selectedRole||!signedInUser?.institution?.id){showAccountError('Complete your stakeholder role and college before starting an assessment.');return;}
+        const selectedRole=signedInUser?.role?legacyRoleMap[signedInUser.role]||signedInUser.role:fallbackRole;
+        const selectedInstitutionName=signedInUser?.institution?.name||fallbackInstitutionName||$('profileInstitutionName').value.trim();
+        if(!selectedRole){showAccountError('Choose your stakeholder role before starting the assessment.');return;}
+        if(!selectedInstitutionName){showAccountError('Choose your college or university before starting the assessment.');return;}
+        if(!signedInUser?.institution?.id)await synchronizeAccountProfile(selectedRole,selectedInstitutionName);
+        const accountHasInstitution=Boolean(signedInUser?.institution?.id)||Boolean(selectedInstitutionName);
+        if(!accountHasInstitution){showAccountError('We could not save your college to this account. Please refresh and try again.');return;}
+        signedInUser={...(signedInUser||{}),role:selectedRole,institution:signedInUser?.institution||{id:null,name:selectedInstitutionName}};
         questions=questionBank[selectedRole]||[];
         if(questions.length!==12){showAccountError('This role’s assessment questions are unavailable. Please refresh and try again.');return;}
         index=0;answers=[];scoreContext=null;chatMessages=[];$('results').classList.add('hidden');$('start').classList.add('hidden');$('survey').classList.remove('hidden');renderQuestion();
