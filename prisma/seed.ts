@@ -26,6 +26,7 @@ const subDimensions = [
 ] as const;
 
 type AssessmentRole = "student" | "faculty" | "leadership" | "business_affairs" | "communications";
+const defaultLegacyInstitution = "University of North Carolina at Charlotte";
 
 const prompts: Record<AssessmentRole, string[]> = {
   student: [
@@ -46,6 +47,13 @@ const prompts: Record<AssessmentRole, string[]> = {
 };
 
 async function main() {
+  const legacyInstitution = await prisma.institution.upsert({ where: { name: defaultLegacyInstitution }, update: {}, create: { name: defaultLegacyInstitution } });
+  await prisma.user.updateMany({ where: { institutionId: null }, data: { institutionId: legacyInstitution.id } });
+  await prisma.user.updateMany({ where: { role: null }, data: { role: StakeholderRole.student } });
+  await prisma.user.updateMany({ where: { role: StakeholderRole.administrator_leadership }, data: { role: StakeholderRole.leadership } });
+  await prisma.user.updateMany({ where: { role: StakeholderRole.it_staff }, data: { role: StakeholderRole.communications } });
+  await prisma.user.updateMany({ where: { role: StakeholderRole.academic_business_affairs_staff }, data: { role: StakeholderRole.business_affairs } });
+
   for (const [id, label, description, sortOrder] of dimensions) await prisma.dimension.upsert({ where: { id }, update: { label, description, sortOrder }, create: { id, label, description, sortOrder } });
   for (const [id, dimensionId, label, description, sortOrder] of subDimensions) await prisma.subDimension.upsert({ where: { id }, update: { dimensionId, label, description, sortOrder }, create: { id, dimensionId, label, description, sortOrder } });
 
