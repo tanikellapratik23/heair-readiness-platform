@@ -132,9 +132,9 @@ function asksAboutAnotherNamedInstitution(question: string, institutionName: str
 }
 
 function cohortContext(comparison: InstitutionComparison, role: string) {
-  if (!comparison.available) return `No institution cohort statistics are available yet. Do not estimate them. Anonymous comparison requires at least ${minimumCohortRespondents} distinct ${roleLabel(role)} accounts at this institution to complete an assessment.`;
+  if (!comparison.available) return "University comparison statistics are not available yet. Do not estimate them. They appear only after enough people in this stakeholder group at the verified institution complete an assessment.";
   const dimensions = comparison.dimensions.map((item) => `${item.dimension}: cohort ${item.averageScore}, user ${item.userScore}`).join("; ");
-  return `Anonymous cohort statistics for the verified institution only: ${comparison.sampleSize} distinct ${roleLabel(role)} accounts, average overall score ${comparison.averageScore}, user difference ${comparison.difference} points. Dimension comparisons: ${dimensions}.`;
+  return `Group statistics for the verified institution only: ${roleLabel(role)} average overall score ${comparison.averageScore}, user difference ${comparison.difference} points. Dimension comparisons: ${dimensions}.`;
 }
 
 function toSavedReport(data: z.infer<typeof reportInput>) {
@@ -282,13 +282,13 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
       const latestQuestion = [...body.data.messages].reverse().find((message) => message.role === "user")?.content ?? "";
       if (asksAboutAnotherNamedInstitution(latestQuestion, user.institution.name)) {
         return {
-          message: `I can only discuss anonymous readiness data for ${user.institution.name}, the institution saved to your account. I cannot provide data for other institutions.`,
+          message: `I can only discuss readiness data for ${user.institution.name}, the institution saved to your account. I cannot provide data for other institutions.`,
           sources: []
         };
       }
       if (/\b(?:who|which person)\b.*\b(?:highest|top|scored|score)\b|\bhighest scorer\b/i.test(latestQuestion)) {
         return {
-          message: `I cannot identify or rank people. I can share anonymous ${roleLabel(user.role)} averages for ${user.institution.name} when enough completed assessments are available.`,
+          message: `I cannot identify or rank people. I can share ${roleLabel(user.role)} averages for ${user.institution.name} when enough completed assessments are available.`,
           sources: []
         };
       }
@@ -301,7 +301,7 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
         body: JSON.stringify({
           model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
           max_tokens: 350,
-          system: `You are a friendly HEAIR readiness coach. The retrieved HEAIR framework context below is your source of truth. Speak in clear, natural English for a ${body.data.role}. Answer the user's exact question first, then connect the answer to their score profile and role. Give at least one concrete activity, safeguard, or practice that appears in the retrieved HEAIR context. Do not invent courses, tools, institutional policies, budgets, or facts not supported by the retrieved context. Never claim to know the user's institution's policies; advise them to verify local policy when needed. Give practical guidance in 140 words or fewer, using two to four short paragraphs or at most three short bullets. Do not use headings, tables, citations, jargon, or Markdown formatting.\n\nInstitution privacy rules: The user is verified as a ${roleLabel(user.role)} at ${user.institution.name}. You may discuss only the anonymous cohort statistics supplied below for this verified institution and role. Never provide, infer, compare, or speculate about another institution. If asked about another university, say you can only discuss anonymous data for ${user.institution.name}. Never identify people, list people, or rank who scored highest. Do not estimate missing cohort statistics.\n\nScore profile: ${JSON.stringify({ overallScore: body.data.overallScore, scores: body.data.scores })}\n\n${cohortContext(institutionComparison, user.role)}\n\nRetrieved HEAIR framework context:\n${heairContext}`,
+          system: `You are a friendly HEAIR readiness coach. The retrieved HEAIR framework context below is your source of truth. Speak in clear, natural English for a ${body.data.role}. Answer the user's exact question first, then connect the answer to their score profile and role. Give at least one concrete activity, safeguard, or practice that appears in the retrieved HEAIR context. Do not invent courses, tools, institutional policies, budgets, or facts not supported by the retrieved context. Never claim to know the user's institution's policies; advise them to verify local policy when needed. Give practical guidance in 140 words or fewer, using two to four short paragraphs or at most three short bullets. Do not use headings, tables, citations, jargon, or Markdown formatting.\n\nInstitution privacy rules: The user is verified as a ${roleLabel(user.role)} at ${user.institution.name}. You may discuss only the group statistics supplied below for this verified institution and role. Never provide, infer, compare, or speculate about another institution. If asked about another university, say you can only discuss data for ${user.institution.name}. Never identify people, list people, or rank who scored highest. Do not estimate missing cohort statistics.\n\nScore profile: ${JSON.stringify({ overallScore: body.data.overallScore, scores: body.data.scores })}\n\n${cohortContext(institutionComparison, user.role)}\n\nRetrieved HEAIR framework context:\n${heairContext}`,
           messages: body.data.messages
         })
       });
