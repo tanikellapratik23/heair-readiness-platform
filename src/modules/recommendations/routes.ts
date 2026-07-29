@@ -30,7 +30,10 @@ const reportInput = z.object({
   priorities: z.array(z.object({ title: z.string().min(1).max(120), score: z.number().min(0).max(100), description: z.string().min(1).max(800), actions: z.array(z.string().min(1).max(300)).max(4) })).max(3)
 });
 const assessmentRole = z.enum(["student", "faculty", "leadership", "business_affairs", "communications"]);
-const profileInput = z.object({ role: assessmentRole });
+const profileInput = z.object({
+  role: assessmentRole.optional(),
+  institutionName: z.string().trim().min(2).max(180).optional()
+}).refine((value) => Boolean(value.role || value.institutionName), { message: "Provide an account setting." });
 const saveResultInput = z.object({
   role: assessmentRole,
   overallScore: z.number().min(0).max(100),
@@ -46,6 +49,30 @@ const subDimensionIds: Record<string, string> = {
 };
 const dimensionIds: Record<string, string> = { "Governance & Strategy": "governance_strategy", "Systems & Infrastructure": "systems_infrastructure", Culture: "culture", Education: "education" };
 const activeAssessmentRoles = ["student", "faculty", "leadership", "business_affairs", "communications"] as const;
+
+function cleanInstitutionName(name: string) {
+  return name.replace(/\s+/g, " ").trim();
+}
+
+type InstitutionComparison = {
+  available: boolean;
+  institutionName: string | null;
+  sampleSize: number;
+  averageScore: number | null;
+  difference: number | null;
+};
+
+async function getInstitutionComparison(institutionId: string | null, institutionName: string | null, role: string | null, score: number): Promise<InstitutionComparison> {
+  if (!institutionId || !role) return { available: false, institutionName, sampleSize: 0, averageScore: null, difference: null };
+  const sessions = await prisma.assessmentSession.findMany({
+    where: { status: "completed", roleAtTime: role as (typeof activeAssessmentRoles)[number], user: { institutionId } },
+    select: { scoreResult: { select: { overallScore: true } } }
+  });
+  const scores = sessions.flatMap((session) => session.scoreResult ? [Number(session.scoreResult.overallScore)] : []);
+  if (scores.length < 3) return { available: false, institutionName, sampleSize: scores.length, averageScore: null, difference: null };
+  const averageScore = Math.round((scores.reduce((sum, value) => sum + value, 0) / scores.length) * 10) / 10;
+  return { available: true, institutionName, sampleSize: scores.length, averageScore, difference: Math.round((score - averageScore) * 10) / 10 };
+}
 
 function toSavedReport(data: z.infer<typeof reportInput>) {
   const byTitle = (title: string) => subDimensionIds[title] ?? null;
@@ -89,7 +116,25 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
     if (!body.success) return reply.code(400).send({ error: "Invalid profile." });
     const user = await currentUser(request);
     if (!user) return reply.code(401).send({ error: "Sign in to save an assessment." });
-    return prisma.user.update({ where: { id: user.id }, data: { role: body.data.role }, select: { id: true, email: true, fullName: true, role: true } });
+    if (user.role && body.data.role && user.role !== body.data.role) return reply.code(409).send({ error: "Your stakeholder role is fixed for this account." });
+
+    let institutionId = user.institutionId;
+    if (body.data.institutionName) {
+      const institutionName = cleanInstitutionName(body.data.institutionName);
+      if (user.institution && user.institution.name.toLocaleLowerCase() !== institutionName.toLocaleLowerCase()) {
+        return reply.code(409).send({ error: "Your institution is fixed for this account." });
+      }
+      if (!institutionId) {
+        const institution = await prisma.institution.upsert({ where: { name: institutionName }, update: {}, create: { name: institutionName } });
+        institutionId = institution.id;
+      }
+    }
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: { role: user.role ?? body.data.role, institutionId },
+      select: { id: true, email: true, fullName: true, role: true, institution: { select: { id: true, name: true } } }
+    });
+    return updated;
   });
 
   app.get("/public/results", async (request, reply) => {
@@ -108,20 +153,25 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
         report: { include: { recommendations: true } }
       }
     });
-    return {
-      user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role },
-      results: sessions.map((session) => ({
+    const results = await Promise.all(sessions.map(async (session) => {
+      const overallScore = session.scoreResult ? Number(session.scoreResult.overallScore) : null;
+      return {
         id: session.id,
         role: session.roleAtTime,
         completedAt: session.completedAt,
-        overallScore: session.scoreResult ? Number(session.scoreResult.overallScore) : null,
+        overallScore,
         scores: session.scoreResult?.subDimensionScores.map((score) => ({
           subDimension: score.subDimension.label,
           dimension: score.subDimension.dimension.label,
           score: Number(score.score)
         })) ?? [],
-        report: session.report ? { summary: session.report.summaryText, data: session.report.structuredData, recommendations: session.report.recommendations } : null
-      }))
+        report: session.report ? { summary: session.report.summaryText, data: session.report.structuredData, recommendations: session.report.recommendations } : null,
+        institutionComparison: overallScore === null ? null : await getInstitutionComparison(user.institutionId, user.institution?.name ?? null, session.roleAtTime, overallScore)
+      };
+    }));
+    return {
+      user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role, institution: user.institution },
+      results
     };
   });
 
@@ -130,6 +180,8 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
     if (!body.success) return reply.code(400).send({ error: "Invalid assessment result." });
     const user = await currentUser(request);
     if (!user) return reply.code(401).send({ error: "Sign in to save an assessment." });
+    if (!user.role || !user.institutionId) return reply.code(400).send({ error: "Complete your stakeholder role and institution before saving an assessment." });
+    if (body.data.role !== user.role) return reply.code(403).send({ error: "Assessments must use the stakeholder role fixed to your account." });
     const subScores = body.data.scores.map((score) => ({ subDimensionId: subDimensionIds[score.subDimension], score: score.score, responseCount: 1 })).filter((score): score is { subDimensionId: string; score: number; responseCount: number } => Boolean(score.subDimensionId));
     const dimensionScores = Object.entries(dimensionIds).map(([label, dimensionId]) => {
       const values = body.data.scores.filter((score) => score.dimension === label).map((score) => score.score);
@@ -137,14 +189,14 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
     });
     if (subScores.length !== 12 || dimensionScores.some((score) => Number.isNaN(score.score))) return reply.code(400).send({ error: "Assessment score profile is incomplete." });
     const saved = await prisma.$transaction(async (tx) => {
-      await tx.user.update({ where: { id: user.id }, data: { role: body.data.role } });
-      const session = await tx.assessmentSession.create({ data: { userId: user.id, roleAtTime: body.data.role, status: "completed", completedAt: new Date() } });
+      const session = await tx.assessmentSession.create({ data: { userId: user.id, roleAtTime: user.role!, status: "completed", completedAt: new Date() } });
       const result = await tx.scoreResult.create({ data: { sessionId: session.id, overallScore: body.data.overallScore, dimensionScores: { create: dimensionScores }, subDimensionScores: { create: subScores } } });
       const report = toSavedReport(body.data.report);
       await tx.readinessReport.create({ data: { sessionId: session.id, overallScore: body.data.overallScore, summaryText: report.summaryText, structuredData: report.structuredData, recommendations: report.recommendations } });
       return { sessionId: session.id, scoreResultId: result.id };
     });
-    return reply.code(201).send(saved);
+    const institutionComparison = await getInstitutionComparison(user.institutionId, user.institution?.name ?? null, user.role, body.data.overallScore);
+    return reply.code(201).send({ ...saved, institutionComparison });
   });
 
   app.post("/public/recommendations", async (request, reply) => {
