@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>How HEAIR Works</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+      :root{--ink:#13233d;--muted:#62728b;--line:#dce5f1;--blue:#2563d9;--blue-soft:#edf3ff;--surface:#fff;--bg:#f4f7fc;--green:#17845d;--deep:#173c84}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(circle at 90% 0,#e1edff 0,transparent 28%),var(--bg);color:var(--ink);font:16px Inter,ui-sans-serif,system-ui,-apple-system,sans-serif}.shell{max-width:1040px;margin:0 auto;padding:29px 20px 76px}.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:40px}.back-link{display:inline-flex;align-items:center;gap:8px;color:#285aa9;text-decoration:none;padding:10px 13px;border:1px solid #cad8ec;border-radius:10px;background:#ffffffb8;font-weight:800;box-shadow:0 6px 16px #2546790b;transition:.18s}.back-link:hover{color:#174ea9;background:#fff;transform:translateX(-2px)}.back-arrow{font-size:21px;line-height:.7}.brand{display:flex;align-items:center;gap:10px;color:#31558a;font-size:14px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}.brand-mark{width:31px;height:31px;border-radius:9px;background:linear-gradient(135deg,#3479ec,#183c89);display:grid;place-items:center;color:white;font-size:17px}.eyebrow{color:var(--blue);font-size:12px;font-weight:850;letter-spacing:.09em;text-transform:uppercase}.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(285px,.9fr);gap:32px;align-items:stretch;margin-bottom:24px}.hero-copy{padding:20px 4px}.hero h1{font-size:clamp(40px,6vw,64px);letter-spacing:-.055em;line-height:.99;margin:13px 0 18px}.hero p{max-width:625px;color:var(--muted);font-size:18px;line-height:1.65;margin:0}.hero-card{position:relative;overflow:hidden;padding:29px;border-radius:24px;background:linear-gradient(145deg,#173c84,#2868d5 62%,#54a4ee);color:#fff;box-shadow:0 22px 45px #1b4b9d33}.hero-card:before{content:"";position:absolute;width:220px;height:220px;right:-98px;top:-90px;border-radius:50%;background:#ffffff16}.hero-card>*{position:relative}.hero-card .eyebrow{color:#dceaff}.hero-card b{display:block;font-size:28px;letter-spacing:-.035em;line-height:1.1;margin:19px 0 14px}.hero-card p{color:#edf5ff;font-size:14px;line-height:1.6}.model-note{display:inline-flex;align-items:center;gap:7px;margin-top:15px;padding:8px 10px;border:1px solid #ffffff33;border-radius:10px;background:#11347433;color:#fff;font-size:12px;font-weight:800}.model-note i{display:block;width:7px;height:7px;border-radius:50%;background:#8bceff}.flow{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;padding:17px;border:1px solid var(--line);border-radius:19px;background:#fff;box-shadow:0 14px 32px #2546790d;margin:26px 0 68px}.flow-step{position:relative;min-height:102px;padding:14px 13px;border-radius:13px;background:#f7faff}.flow-step:not(:last-child):after{content:"→";position:absolute;right:-15px;top:37px;z-index:2;width:20px;color:#5d81c1;text-align:center;font-size:20px;font-weight:800}.flow-num{display:block;color:#2863cc;font-size:11px;font-weight:850;letter-spacing:.08em}.flow-step b{display:block;font-size:15px;line-height:1.15;margin-top:9px;letter-spacing:-.015em}.section{margin:0 0 82px}.section-heading{max-width:720px;margin-bottom:24px}.section-heading h2{font-size:clamp(29px,4vw,42px);line-height:1.05;letter-spacing:-.045em;margin:10px 0 12px}.section-heading p{color:var(--muted);line-height:1.65;margin:0}.process-card{display:grid;grid-template-columns:58px minmax(0,1fr);gap:20px;padding:26px;border:1px solid var(--line);border-radius:20px;background:#fff;box-shadow:0 14px 32px #2546790b;margin-top:14px}.process-number{display:grid;place-items:center;width:46px;height:46px;border-radius:14px;background:#e2edff;color:#245bbb;font-weight:900;font-size:17px}.process-card h3{margin:2px 0 8px;font-size:21px;letter-spacing:-.025em}.process-card p{color:var(--muted);line-height:1.62;margin:0}.role-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:17px}.role-chips span{padding:7px 10px;border-radius:99px;background:#eff5ff;color:#285aa9;font-size:13px;font-weight:800}.dimension-list{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:18px}.dimension-list span{padding:12px;border:1px solid #d8e4f6;border-radius:11px;background:#fbfdff;color:#355273;font-size:13px;font-weight:750;line-height:1.25}.score-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(270px,.8fr);gap:19px;align-items:start}.score-list{display:grid;gap:9px;margin-top:18px}.score-list div{display:flex;gap:10px;align-items:start;color:#475e7d;line-height:1.45}.score-list i{display:grid;place-items:center;flex:0 0 20px;width:20px;height:20px;margin-top:1px;border-radius:50%;background:#deebff;color:#2460c8;font-style:normal;font-size:12px;font-weight:900}.learn-card{padding:22px;border-radius:17px;background:linear-gradient(145deg,#eff5ff,#f9fbff);border:1px solid #cfdef3}.learn-card .chat-title{color:#245bbb;font-size:12px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.learn-card h3{margin:8px 0 8px;font-size:20px;letter-spacing:-.025em}.learn-card p{font-size:14px;line-height:1.55;margin:0;color:var(--muted)}.chat-preview{margin-top:16px;border:1px solid #d3dfee;border-radius:13px;background:white;padding:12px}.chat-preview .question{margin-left:auto;max-width:88%;padding:9px 11px;border-radius:10px 10px 2px 10px;background:#2865d9;color:#fff;font-size:13px;line-height:1.35}.chat-preview .answer{max-width:92%;margin-top:9px;padding:9px 11px;border-radius:10px 10px 10px 2px;background:#f1f5fb;color:#465b79;font-size:13px;line-height:1.4}.roadmap{position:relative;overflow:hidden;padding:clamp(27px,5vw,52px);border-radius:24px;background:#142f65;color:#fff;box-shadow:0 22px 48px #1636662c}.roadmap:before{content:"";position:absolute;right:-115px;top:-140px;width:340px;height:340px;border-radius:50%;background:#3f8af644}.roadmap>*{position:relative}.roadmap .eyebrow{color:#a9ceff}.roadmap h2{max-width:640px;margin:11px 0 15px;font-size:clamp(30px,4vw,44px);line-height:1.05;letter-spacing:-.045em}.roadmap>p{max-width:710px;margin:0;color:#dbeaff;line-height:1.68}.evidence-flow{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:28px}.evidence-step{padding:17px;border:1px solid #ffffff24;border-radius:14px;background:#ffffff0e}.evidence-step span{display:block;color:#a9ceff;font-size:11px;font-weight:850;letter-spacing:.08em}.evidence-step b{display:block;margin:7px 0 6px;font-size:17px;line-height:1.15}.evidence-step p{margin:0;color:#deebff;font-size:13px;line-height:1.5}.guidance-note{margin-top:22px;padding:15px 17px;border-left:3px solid #78b7ff;border-radius:0 11px 11px 0;background:#ffffff12;color:#e6f0ff;font-size:14px;line-height:1.55}.sources{margin-top:22px;color:#bdd8ff;font-size:13px;line-height:1.5}.sources b{color:#fff}.cta{margin-top:76px;padding:clamp(30px,5vw,50px);border:1px solid #cbdcf3;border-radius:24px;text-align:center;background:linear-gradient(145deg,#fff,#f3f8ff);box-shadow:0 16px 38px #25467910}.cta h2{font-size:clamp(30px,4vw,43px);letter-spacing:-.045em;margin:0 0 10px}.cta p{max-width:590px;margin:0 auto 22px;color:var(--muted);line-height:1.6}.button{display:inline-flex;align-items:center;justify-content:center;padding:13px 19px;border:0;border-radius:10px;background:var(--blue);color:white;text-decoration:none;font-weight:800;box-shadow:0 5px 12px #2563d92b;transition:.15s}.button:hover{background:#174ea9;transform:translateY(-1px)}.cta-login{display:block;margin-top:13px;color:#3264ae;font-size:14px}.cta-login a{color:inherit;font-weight:800}.footer{margin-top:35px;text-align:center;color:#7c8ca4;font-size:13px}.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s ease,transform .65s ease}.reveal.visible{opacity:1;transform:translateY(0)}@media(max-width:760px){.shell{padding:21px 14px 50px}.topbar{margin-bottom:28px}.brand{font-size:12px}.hero{grid-template-columns:1fr;gap:20px}.hero h1{font-size:clamp(39px,12vw,58px)}.flow{grid-template-columns:1fr;padding:12px;margin-bottom:54px}.flow-step{min-height:0}.flow-step:not(:last-child):after{content:"↓";right:calc(50% - 10px);top:auto;bottom:-22px}.section{margin-bottom:57px}.process-card{grid-template-columns:42px minmax(0,1fr);gap:13px;padding:21px}.process-number{width:39px;height:39px;border-radius:12px}.dimension-list,.evidence-flow{grid-template-columns:1fr}.score-layout{grid-template-columns:1fr}.roadmap{margin-left:-2px;margin-right:-2px}.cta{margin-top:54px}}
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="back-link" href="index.html"><span class="back-arrow">←</span> Back to Home</a>
+        <div class="brand"><span class="brand-mark">✦</span> HEAIR Readiness Platform</div>
+      </header>
+
+      <section class="hero reveal">
+        <div class="hero-copy">
+          <span class="eyebrow">How it works</span>
+          <h1>A clear path from role to action.</h1>
+          <p>HEAIR turns a short, role-specific assessment into an evidence-informed AI readiness roadmap for people working and learning across higher education.</p>
+        </div>
+        <aside class="hero-card">
+          <span class="eyebrow">Built for practical progress</span>
+          <b>Your score is the starting point — not the whole answer.</b>
+          <p>The platform connects your score profile to the HEAIR research framework, then turns that evidence into useful, role-aware guidance.</p>
+          <span class="model-note"><i></i> Powered by Claude Sonnet 4.6 on the backend</span>
+        </aside>
+      </section>
+
+      <section class="flow reveal" aria-label="HEAIR assessment flow">
+        <div class="flow-step"><span class="flow-num">01</span><b>Choose Role</b></div>
+        <div class="flow-step"><span class="flow-num">02</span><b>Complete Assessment</b></div>
+        <div class="flow-step"><span class="flow-num">03</span><b>View Score</b></div>
+        <div class="flow-step"><span class="flow-num">04</span><b>Learn About Results</b></div>
+        <div class="flow-step"><span class="flow-num">05</span><b>Receive AI Roadmap</b></div>
+      </section>
+
+      <section class="section reveal">
+        <div class="section-heading"><span class="eyebrow">Step by step</span><h2>Start with the perspective that fits your work.</h2><p>Readiness looks different across an institution. HEAIR adapts the assessment to the responsibilities of the person completing it.</p></div>
+        <article class="process-card"><div class="process-number">1</div><div><h3>Select your stakeholder role</h3><p>Choose the role that best reflects your current responsibilities. The survey then uses questions relevant to that role, rather than asking every person the same generic questions.</p><div class="role-chips"><span>Student</span><span>Faculty</span><span>Leadership</span><span>Business Affairs</span><span>Communications</span></div></div></article>
+        <article class="process-card"><div class="process-number">2</div><div><h3>Complete your 12-question assessment</h3><p>You answer 12 role-specific questions across the four HEAIR readiness dimensions. There are no trick questions — choose the response that best reflects your current experience or environment.</p><div class="dimension-list"><span>Governance &amp; Strategy</span><span>Systems &amp; Infrastructure</span><span>Culture</span><span>Education</span></div></div></article>
+      </section>
+
+      <section class="section reveal">
+        <div class="section-heading"><span class="eyebrow">Your results</span><h2>Understand the score before deciding what to do next.</h2><p>Your responses are normalized into an overall AI-readiness score, a readiness level, and four dimension scores. The result gives you a clear picture without pretending that one number tells the whole story.</p></div>
+        <div class="score-layout">
+          <article class="process-card" style="margin-top:0"><div class="process-number">3</div><div><h3>What your report shows</h3><div class="score-list"><div><i>✓</i><span>How your overall score was calculated from the 12 responses.</span></div><div><i>✓</i><span>What your readiness level means in practical terms.</span></div><div><i>✓</i><span>Which HEAIR dimensions increased or lowered your score.</span></div><div><i>✓</i><span>Your strongest areas to build on and weakest areas to improve first.</span></div><div><i>✓</i><span>How you compare with your stakeholder group or department when enough anonymous data is available.</span></div></div></div></article>
+          <aside class="learn-card"><span class="chat-title">Learn more about my score</span><h3>Open a conversation about your results.</h3><p>The option on your report opens a full-screen coaching chat. It carries your role, score profile, strengths, and priority areas into the conversation.</p><div class="chat-preview"><div class="question">What should I focus on first?</div><div class="answer">Your coach explains the first practical move based on your score profile and the HEAIR guidance retrieved for it.</div></div></aside>
+        </div>
+      </section>
+
+      <section class="roadmap reveal">
+        <span class="eyebrow">Evidence-informed guidance</span>
+        <h2>Receive your AI-powered roadmap.</h2>
+        <p>The AI does not create recommendations from the score alone. Your score identifies readiness gaps; the RAG knowledge base retrieves relevant sections of the HEAIR research paper and approved AI-readiness resources; then the AI uses that evidence to create role-specific guidance.</p>
+        <div class="evidence-flow"><article class="evidence-step"><span>YOUR PROFILE</span><b>Score identifies the gaps</b><p>Your role, responses, overall score, dimension scores, and lowest-scoring areas set the focus.</p></article><article class="evidence-step"><span>RAG KNOWLEDGE BASE</span><b>Research supplies context</b><p>Relevant HEAIR evidence and approved resources are retrieved for the profile before advice is written.</p></article><article class="evidence-step"><span>AI ROADMAP</span><b>Guidance becomes actionable</b><p>You receive personalized recommendations, priorities, next steps, longer-term goals, and useful policies, training, tools, or resources.</p></article></div>
+        <div class="guidance-note"><b>Important:</b> Recommendations are guidance, not final institutional decisions. Review them with your institution’s policies, experts, and local context before acting on them.</div>
+        <p class="sources"><b>Source support:</b> Recommendations are grounded in the HEAIR framework paper and retrieved approved AI-readiness resources. Source references should accompany the guidance so you can understand the evidence behind a recommendation.</p>
+      </section>
+
+      <section class="cta reveal">
+        <h2>Ready to see your next step?</h2>
+        <p id="ctaDescription">Create an account to choose your role, save your results, and start your assessment.</p>
+        <a id="ctaButton" class="button" href="index.html?auth=register">Start Your Assessment</a>
+        <span id="ctaLogin" class="cta-login">Already have an account? <a href="index.html?auth=login">Log in</a></span>
+      </section>
+      <footer class="footer">HEAIR Readiness Platform · Higher education AI readiness, made practical.</footer>
+    </main>
+    <script>
+      const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target)}}),{threshold:.12});
+      document.querySelectorAll('.reveal').forEach(element=>observer.observe(element));
+      if(localStorage.getItem('heair_auth_token')){
+        document.getElementById('ctaButton').href='index.html?assessment=1';
+        document.getElementById('ctaButton').textContent='Choose Your Role';
+        document.getElementById('ctaDescription').textContent='You are signed in. Choose your role and begin a new 12-question assessment.';
+        document.getElementById('ctaLogin').hidden=true;
+      }
+    </script>
+  </body>
+</html>
