@@ -136,10 +136,16 @@
       }
       async function api(path,options={}){
         if(!apiBase())throw new Error('Account storage is not configured yet.');
-        const response=await fetch(apiBase()+path,{...options,headers:{'content-type':'application/json',...(authToken?{Authorization:`Bearer ${authToken}`}:{}),...(options.headers||{})}});
-        const data=await response.json().catch(()=>({}));
-        if(!response.ok)throw new Error(data.error||'Something went wrong. Please try again.');
-        return data;
+        const controller=new AbortController(),timeout=window.setTimeout(()=>controller.abort(),65000);
+        try{
+          const response=await fetch(apiBase()+path,{...options,signal:controller.signal,headers:{'content-type':'application/json',...(authToken?{Authorization:`Bearer ${authToken}`}:{}),...(options.headers||{})}});
+          const data=await response.json().catch(()=>({}));
+          if(!response.ok)throw new Error(data.error||'Something went wrong. Please try again.');
+          return data;
+        }catch(error){
+          if(error?.name==='AbortError')throw new Error('The secure account service did not respond. Please try again in a minute.');
+          throw error;
+        }finally{window.clearTimeout(timeout);}
       }
       function showAccountError(message=''){const error=$('accountError');error.textContent=message;error.classList.toggle('hidden',!message);}
       function openAccount(mode){
@@ -164,7 +170,8 @@
       async function startSurvey(){
         const email=$('email').value.trim(),password=$('password').value,fullName=$('fullName').value.trim(),button=$('startButton');showAccountError('');
         if(!email||!password||(authMode==='register'&&!fullName)){showAccountError('Enter your name, email address, and password to continue.');return;}
-        button.disabled=true;
+        const buttonText=button.textContent,waitingNotice=window.setTimeout(()=>{if(button.disabled)button.textContent='Starting secure account service...';},7000);
+        button.disabled=true;button.textContent=authMode==='register'?'Creating your account...':'Signing you in...';
         try{
           const body=authMode==='register'?{email,password,fullName}:{email,password};
           const data=await api(`/auth/${authMode==='register'?'register':'login'}`,{method:'POST',body:JSON.stringify(body)});
@@ -172,7 +179,7 @@
           if(authMode==='login'){showSignedIn(data.user);await loadSavedResults();}
           else await beginNewAssessment();
         }catch(error){showAccountError(error.message||'We could not sign you in.');}
-        finally{button.disabled=false;}
+        finally{window.clearTimeout(waitingNotice);button.disabled=false;button.textContent=buttonText;}
       }
       async function beginNewAssessment(){
         showAccountError('');
