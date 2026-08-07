@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
-import type { StakeholderRole } from "@prisma/client";
+import { SystemRole, type StakeholderRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { prisma } from "../../lib/prisma.js";
 import { currentUser } from "../../lib/auth.js";
@@ -28,17 +29,40 @@ function cleanInstitutionName(name: string) {
   return name.replace(/\s+/g, " ").trim();
 }
 
-function accountUser(user: { id: string; email: string; fullName: string | null; role: string | null; institution?: { id: string; name: string } | null }) {
+function accountUser(user: { id: string; email: string; fullName: string | null; role: string | null; systemRole: SystemRole; institution?: { id: string; name: string } | null }) {
   return {
     id: user.id,
     email: user.email,
     fullName: user.fullName,
     role: user.role,
+    systemRole: user.systemRole,
     institution: user.institution ?? null
   };
 }
 
-async function completeLegacyAccount(user: { id: string; email: string; fullName: string | null; role: StakeholderRole | null; institutionId: string | null; institution: { id: string; name: string } | null }) {
+function constantTimeMatch(value: string, expected: string) {
+  const actual = Buffer.from(value);
+  const target = Buffer.from(expected);
+  return actual.length === target.length && timingSafeEqual(actual, target);
+}
+
+function isConfiguredAdminLogin(email: string, password: string) {
+  const configuredEmail = process.env.ADMIN_EMAIL?.trim().toLocaleLowerCase();
+  const configuredPassword = process.env.ADMIN_PASSWORD;
+  return Boolean(configuredEmail && configuredPassword && constantTimeMatch(email.trim().toLocaleLowerCase(), configuredEmail) && constantTimeMatch(password, configuredPassword));
+}
+
+async function provisionConfiguredAdmin(email: string, password: string) {
+  const passwordHash = await bcrypt.hash(password, 12);
+  return prisma.user.upsert({
+    where: { email: email.trim().toLocaleLowerCase() },
+    update: { fullName: "HEAIR Administrator", passwordHash, systemRole: SystemRole.admin },
+    create: { email: email.trim().toLocaleLowerCase(), fullName: "HEAIR Administrator", passwordHash, systemRole: SystemRole.admin },
+    include: { institution: { select: { id: true, name: true } } }
+  });
+}
+
+async function completeLegacyAccount(user: { id: string; email: string; fullName: string | null; role: StakeholderRole | null; systemRole: SystemRole; institutionId: string | null; institution: { id: string; name: string } | null }) {
   const role = user.role && activeRoles.has(user.role) ? user.role : (user.role ? legacyRoleMap[user.role] : undefined) ?? "student";
   const institution = user.institution ?? await prisma.institution.upsert({
     where: { name: DEFAULT_LEGACY_INSTITUTION },
@@ -79,6 +103,10 @@ export async function authRoutes(app: FastifyInstance) {
   });
   app.post("/auth/login", async (request, reply) => {
     const body = login.parse(request.body);
+    if (isConfiguredAdminLogin(body.email, body.password)) {
+      const admin = await provisionConfiguredAdmin(body.email, body.password);
+      return { user: accountUser(admin), token: app.jwt.sign({ sub: admin.id }) };
+    }
     const user = await prisma.user.findUnique({ where: { email: body.email }, include: { institution: { select: { id: true, name: true } } } });
     if (!user || !(await bcrypt.compare(body.password, user.passwordHash))) return fail(reply, 401, "Invalid email or password.");
     const completedUser = await completeLegacyAccount(user);
@@ -87,7 +115,8 @@ export async function authRoutes(app: FastifyInstance) {
   app.get("/me", async (request, reply) => {
     const user = await currentUser(request);
     if (!user) return fail(reply, 404, "User not found.");
-    return completeLegacyAccount(user);
+    if (user.systemRole === SystemRole.admin) return accountUser(user);
+    return accountUser(await completeLegacyAccount(user));
   });
   app.patch("/me/role", async (request, reply) => {
     const user = await currentUser(request); if (!user) return fail(reply, 404, "User not found."); const body = profile.parse(request.body);
