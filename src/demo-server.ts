@@ -1,9 +1,9 @@
 import Fastify from "fastify";
 import { readFile } from "node:fs/promises";
 
-type Role = "student" | "faculty" | "leadership" | "business_affairs" | "communications";
+type Role = "student" | "faculty" | "leadership" | "business_affairs" | "it_staff";
 const roles: { id: Role; label: string }[] = [
-  { id: "student", label: "Student" }, { id: "faculty", label: "Faculty" }, { id: "leadership", label: "Leadership" }, { id: "business_affairs", label: "Business Affairs" }, { id: "communications", label: "Communications" }
+  { id: "student", label: "Student" }, { id: "faculty", label: "Faculty" }, { id: "leadership", label: "Leadership" }, { id: "business_affairs", label: "Business Affairs" }, { id: "it_staff", label: "IT Staff" }
 ];
 const subDimensions = [
   ["policy_compliance", "Policy & Compliance", "Governance & Strategy"], ["ai_governance_access", "AI Governance & Access", "Governance & Strategy"], ["leadership_resourcing", "Leadership & Resourcing", "Governance & Strategy"], ["monitoring_evaluation", "Monitoring & Evaluation", "Governance & Strategy"],

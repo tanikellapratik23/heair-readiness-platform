@@ -7,7 +7,7 @@ import { prisma } from "../../lib/prisma.js";
 import { currentUser } from "../../lib/auth.js";
 import { fail } from "../../lib/errors.js";
 
-const assessmentRole = z.enum(["student", "faculty", "leadership", "business_affairs", "communications"]);
+const assessmentRole = z.enum(["student", "faculty", "leadership", "business_affairs", "it_staff"]);
 const registration = z.object({
   email: z.string().email(),
   password: z.string().min(8),
@@ -18,10 +18,10 @@ const registration = z.object({
 const login = z.object({ email: z.string().email(), password: z.string().min(8) });
 const profile = z.object({ role: assessmentRole, departmentId: z.string().uuid(), institutionId: z.string().uuid().optional() });
 const DEFAULT_LEGACY_INSTITUTION = "University of North Carolina at Charlotte";
-const activeRoles = new Set<StakeholderRole>(["student", "faculty", "leadership", "business_affairs", "communications"]);
+const activeRoles = new Set<StakeholderRole>(["student", "faculty", "leadership", "business_affairs", "it_staff"]);
 const legacyRoleMap: Partial<Record<StakeholderRole, StakeholderRole>> = {
   administrator_leadership: "leadership",
-  it_staff: "communications",
+  communications: "it_staff",
   academic_business_affairs_staff: "business_affairs"
 };
 

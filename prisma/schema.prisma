@@ -12,10 +12,10 @@ enum StakeholderRole {
   faculty
   leadership
   business_affairs
-  communications
-  // Legacy values are retained only so existing saved records remain readable.
-  administrator_leadership
   it_staff
+  // Legacy values are retained only so existing saved records remain readable.
+  communications
+  administrator_leadership
   academic_business_affairs_staff
 }
 

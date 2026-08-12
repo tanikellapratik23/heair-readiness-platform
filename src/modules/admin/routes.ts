@@ -5,7 +5,7 @@ import { fail } from "../../lib/errors.js";
 import { prisma } from "../../lib/prisma.js";
 
 const completedAssessment = { status: "completed" as const, scoreResult: { isNot: null } };
-const activeRoles = ["student", "faculty", "leadership", "business_affairs", "communications"] as const;
+const activeRoles = ["student", "faculty", "leadership", "business_affairs", "it_staff"] as const;
 const dimensionColumns = [
   ["governance_strategy", "governance_strategy_score"],
   ["systems_infrastructure", "systems_infrastructure_score"],

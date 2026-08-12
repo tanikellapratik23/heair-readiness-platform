@@ -71,19 +71,19 @@
       "How adequately are business-affairs employees trained to use administrative AI tools safely, accurately, and responsibly?",
       "How prepared is the institution to develop or hire employees with the financial, legal, operational, and technical skills needed for AI adoption?"
     ],
-    communications: [
-      "How clear are the rules for using AI to create, edit, approve, translate, or distribute institutional communications?",
-      "How clearly is the communications team’s role defined in AI policy announcements, crisis communication, and public transparency?",
-      "How adequate are the staffing, tools, training, and budget available for responsible AI-assisted communications?",
-      "How effectively does the communications team measure the accuracy, reach, accessibility, trust, and audience response of AI-assisted content?",
-      "How safely does the communications team handle personal, confidential, or institutional data when using AI tools?",
-      "How prepared is the team to verify the quality, consent, ownership, and representativeness of data used for audience targeting or content personalization?",
-      "How prepared is the team to use AI for drafting, translation, accessibility, social-media monitoring, chatbots, or crisis response?",
-      "How clearly does the institution disclose significant AI use and explain AI-supported messages or decisions to its audiences?",
-      "How consistently does the team review AI-generated content for misinformation, bias, harmful stereotypes, copyright issues, and accessibility?",
-      "How effectively does the communications team gather feedback and communicate AI changes across campus communities?",
-      "How well can communications staff verify AI-generated information, recognize hallucinations, and use AI without weakening institutional credibility?",
-      "How available are continuing-development opportunities involving AI communication strategy, verification, accessibility, analytics, and crisis management?"
+    it_staff: [
+      "How clearly do institutional AI policies define the technical controls, approval requirements, and escalation procedures you are responsible for implementing?",
+      "How effectively are IT Staff involved in establishing role-based access, approved-tool pathways, and technical governance for AI services?",
+      "How adequate are the staffing, budget, platforms, and leadership support available to operate AI services responsibly?",
+      "How consistently does the IT organization monitor AI service performance, usage, incidents, security risks, and remediation outcomes?",
+      "How prepared is the IT organization to secure AI integrations through privacy review, identity controls, encryption, logging, vendor review, and incident response?",
+      "How effectively are data quality, ownership, access permissions, retention, and lineage managed across systems that support AI?",
+      "How prepared is the IT organization to integrate approved AI capabilities with systems such as LMS, SIS, identity, service desk, and data platforms?",
+      "How consistently do technical teams document AI system capabilities, limitations, data flows, decision logs, and escalation paths for affected users?",
+      "How consistently are bias, misuse, accessibility, human oversight, and harmful failure modes evaluated before AI systems are deployed or expanded?",
+      "How effectively does IT Staff gather requirements and feedback from students, faculty, staff, and leadership before and after AI services are introduced?",
+      "How well do IT Staff understand AI capabilities, model limitations, prompt risks, security threats, data exposure, and verification practices?",
+      "How available are opportunities to develop applied expertise in AI architecture, MLOps, data engineering, security, governance, and responsible deployment?"
     ]
   };
 

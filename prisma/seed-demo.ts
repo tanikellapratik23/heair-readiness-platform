@@ -14,7 +14,7 @@ const legacyDemoEmails = [
   "demo.faculty@heair.local",
   "demo.leadership@heair.local",
   "demo.business@heair.local",
-  "demo.communications@heair.local",
+  "demo.it-staff@heair.local",
 ];
 
 const subDimensionIds = [
@@ -93,8 +93,8 @@ const demoProfiles: DemoRoleProfiles[] = [
     ],
   },
   {
-    role: StakeholderRole.communications,
-    label: "Communications",
+    role: StakeholderRole.it_staff,
+    label: "IT Staff",
     profiles: [
       [60, 65, 60, 65, 65, 60, 70, 70, 70, 75, 75, 70],
       [65, 70, 65, 70, 70, 65, 75, 75, 75, 80, 80, 75],

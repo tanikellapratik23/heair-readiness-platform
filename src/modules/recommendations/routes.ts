@@ -29,7 +29,7 @@ const reportInput = z.object({
   strengths: z.array(z.object({ title: z.string().min(1).max(120), score: z.number().min(0).max(100), description: z.string().min(1).max(800) })).max(3),
   priorities: z.array(z.object({ title: z.string().min(1).max(120), score: z.number().min(0).max(100), description: z.string().min(1).max(800), actions: z.array(z.string().min(1).max(300)).max(4) })).max(3)
 });
-const assessmentRole = z.enum(["student", "faculty", "leadership", "business_affairs", "communications"]);
+const assessmentRole = z.enum(["student", "faculty", "leadership", "business_affairs", "it_staff"]);
 const profileInput = z.object({
   role: assessmentRole.optional(),
   institutionName: z.string().trim().min(2).max(180).optional()
@@ -48,7 +48,7 @@ const subDimensionIds: Record<string, string> = {
   "AI Literacy": "ai_literacy", "Expertise Development": "expertise_development"
 };
 const dimensionIds: Record<string, string> = { "Governance & Strategy": "governance_strategy", "Systems & Infrastructure": "systems_infrastructure", Culture: "culture", Education: "education" };
-const activeAssessmentRoles = ["student", "faculty", "leadership", "business_affairs", "communications"] as const;
+const activeAssessmentRoles = ["student", "faculty", "leadership", "business_affairs", "it_staff"] as const;
 const minimumCohortRespondents = 5;
 
 function cleanInstitutionName(name: string) {
@@ -173,13 +173,13 @@ async function getUniversityReadinessInsight(institutionId: string | null, insti
 }
 
 function roleLabel(role: string) {
-  return ({ student: "Student", faculty: "Faculty", leadership: "Leadership", business_affairs: "Business Affairs", communications: "Communications" } as Record<string, string>)[role] ?? role;
+  return ({ student: "Student", faculty: "Faculty", leadership: "Leadership", business_affairs: "Business Affairs", it_staff: "IT Staff", communications: "IT Staff" } as Record<string, string>)[role] ?? role;
 }
 
 function asksAboutAnotherNamedInstitution(question: string, institutionName: string) {
   const match = question.toLocaleLowerCase().match(/\bunc(?:\s+[a-z]+){1,3}\b|\b(?:university|college|institute)\s+(?:of\s+)?(?:[a-z]+\s*){1,5}/i);
   if (!match) return false;
-  const ignored = new Set(["unc", "university", "college", "institute", "of", "the", "at", "for", "from", "my", "our", "your", "a", "an", "and", "readiness", "average", "averages", "score", "scores", "student", "students", "faculty", "leadership", "business", "affairs", "communications"]);
+  const ignored = new Set(["unc", "university", "college", "institute", "of", "the", "at", "for", "from", "my", "our", "your", "a", "an", "and", "readiness", "average", "averages", "score", "scores", "student", "students", "faculty", "leadership", "business", "affairs", "it", "staff"]);
   const requestedWords = match[0].toLocaleLowerCase().match(/[a-z]+/g)?.filter((word) => !ignored.has(word)) ?? [];
   if (!requestedWords.length) return false;
   const accountWords = new Set(institutionName.toLocaleLowerCase().match(/[a-z]+/g) ?? []);
