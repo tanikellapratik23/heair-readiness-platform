@@ -64,6 +64,13 @@ type InstitutionComparison = {
   dimensions: Array<{ dimension: string; averageScore: number; userScore: number; difference: number }>;
 };
 
+type UniversityReadinessInsight = {
+  available: boolean;
+  institutionName: string | null;
+  averageScore: number | null;
+  dimensions: Array<{ dimension: string; averageScore: number }>;
+};
+
 type ScoreProfileItem = { dimension: string; score: number };
 
 function average(values: number[]) {
@@ -115,6 +122,54 @@ async function getInstitutionComparison(institutionId: string | null, institutio
   });
   const averageScore = rounded(average(cohortScores));
   return { available: true, institutionName, sampleSize: latestSessions.length, averageScore, difference: rounded(score - averageScore), dimensions };
+}
+
+async function getUniversityReadinessInsight(institutionId: string | null, institutionName: string | null): Promise<UniversityReadinessInsight> {
+  const unavailable = { available: false, institutionName, averageScore: null, dimensions: [] };
+  if (!institutionId) return unavailable;
+
+  const sessions = await prisma.assessmentSession.findMany({
+    where: {
+      status: "completed",
+      roleAtTime: { in: [...activeAssessmentRoles] },
+      user: { institutionId },
+      scoreResult: { isNot: null }
+    },
+    orderBy: { completedAt: "desc" },
+    select: {
+      userId: true,
+      scoreResult: {
+        select: {
+          overallScore: true,
+          dimensionScores: { select: { score: true, dimension: { select: { label: true } } } }
+        }
+      }
+    }
+  });
+
+  // Every account contributes only its newest result, regardless of stakeholder role.
+  const latestByUser = new Map<string, (typeof sessions)[number]>();
+  for (const session of sessions) if (!latestByUser.has(session.userId)) latestByUser.set(session.userId, session);
+  const latestSessions = [...latestByUser.values()].filter((session) => Boolean(session.scoreResult));
+  if (latestSessions.length < minimumCohortRespondents) return unavailable;
+
+  const byDimension = new Map<string, number[]>();
+  for (const session of latestSessions) {
+    for (const dimensionScore of session.scoreResult!.dimensionScores) {
+      const label = dimensionScore.dimension.label;
+      byDimension.set(label, [...(byDimension.get(label) ?? []), Number(dimensionScore.score)]);
+    }
+  }
+
+  return {
+    available: true,
+    institutionName,
+    averageScore: rounded(average(latestSessions.map((session) => Number(session.scoreResult!.overallScore)))),
+    dimensions: Object.keys(dimensionIds).flatMap((dimension) => {
+      const scores = byDimension.get(dimension);
+      return scores?.length ? [{ dimension, averageScore: rounded(average(scores)) }] : [];
+    })
+  };
 }
 
 function roleLabel(role: string) {
@@ -172,6 +227,12 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
     } catch {
       return reply.code(503).send({ error: "Assessment insights are temporarily unavailable." });
     }
+  });
+
+  app.get("/public/university-readiness", async (request, reply) => {
+    const user = await currentUser(request);
+    if (!user) return reply.code(401).send({ error: "Sign in to view university readiness." });
+    return getUniversityReadinessInsight(user.institutionId, user.institution?.name ?? null);
   });
 
   app.patch("/public/profile", async (request, reply) => {
