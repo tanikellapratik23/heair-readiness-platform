@@ -268,6 +268,9 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
       where: { userId: user.id, status: "completed" },
       orderBy: { completedAt: "desc" },
       include: {
+        responses: {
+          include: { question: { include: { subDimension: true } } }
+        },
         scoreResult: {
           include: {
             dimensionScores: { include: { dimension: true } },
@@ -284,12 +287,18 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
         dimension: score.subDimension.dimension.label,
         score: Number(score.score)
       })) ?? [];
+      const assessmentResponses = session.responses.map((response) => ({
+        prompt: response.question.prompt,
+        subDimension: response.question.subDimension.label,
+        responseValue: response.responseValue
+      }));
       return {
         id: session.id,
         role: session.roleAtTime,
         completedAt: session.completedAt,
         overallScore,
         scores,
+        assessmentResponses,
         report: session.report ? { summary: session.report.summaryText, data: session.report.structuredData, recommendations: session.report.recommendations } : null,
         institutionComparison: overallScore === null ? null : await getInstitutionComparison(user.institutionId, user.institution?.name ?? null, session.roleAtTime, overallScore, scores)
       };
@@ -315,6 +324,16 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
     if (subScores.length !== 12 || dimensionScores.some((score) => Number.isNaN(score.score))) return reply.code(400).send({ error: "Assessment score profile is incomplete." });
     const saved = await prisma.$transaction(async (tx) => {
       const session = await tx.assessmentSession.create({ data: { userId: user.id, roleAtTime: user.role!, status: "completed", completedAt: new Date() } });
+      const questions = await tx.question.findMany({
+        where: { role: user.role!, active: true, sessionScoped: false, subDimensionId: { in: subScores.map((score) => score.subDimensionId) } },
+        select: { id: true, subDimensionId: true }
+      });
+      const scoreBySubDimension = new Map(subScores.map((score) => [score.subDimensionId, Number(score.score)]));
+      const responses = questions.flatMap((question) => {
+        const score = scoreBySubDimension.get(question.subDimensionId);
+        return score === undefined ? [] : [{ sessionId: session.id, questionId: question.id, responseValue: Math.round(score / 25) + 1 }];
+      });
+      if (responses.length) await tx.questionResponse.createMany({ data: responses });
       const result = await tx.scoreResult.create({ data: { sessionId: session.id, overallScore: body.data.overallScore, dimensionScores: { create: dimensionScores }, subDimensionScores: { create: subScores } } });
       const report = toSavedReport(body.data.report);
       await tx.readinessReport.create({ data: { sessionId: session.id, overallScore: body.data.overallScore, summaryText: report.summaryText, structuredData: report.structuredData, recommendations: report.recommendations } });
