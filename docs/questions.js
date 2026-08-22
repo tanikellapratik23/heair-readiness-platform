@@ -43,7 +43,7 @@
       "On a scale of 1 to 5, how prepared do you feel to use AI tools and understand their uses and limitations?",
       "What professional-development opportunities are available to help you develop advanced AI skills for teaching, research, or academic work?"
     ],
-    leadership: [
+    executive_leadership: [
       "How often does your institution update its AI policies to align with accreditation standards?",
       "How confident are you that your institution's AI policies are reviewed and updated to keep up with changes in AI technology and institutional needs?",
       "How important do you think it is to direct limited institutional resources toward AI projects?",
@@ -57,7 +57,7 @@
       "To what extent do the staff you supervise demonstrate gaps in AI literacy?",
       "How effectively does your institution support the development of advanced AI knowledge and skills among faculty, staff, and leadership?"
     ],
-    business_affairs: [
+    administrative_staff: [
       "How confident are you that your department has the bandwidth to keep up with changing AI policy and contracts?",
       "How clear are your institution's AI policies for managing sensitive student data?",
       "To the best of your knowledge, how would you rate the outcomes of your institution’s investment in AI compared with the cost?",
@@ -71,7 +71,7 @@
       "How would you rate your overall understanding of AI and its abilities?",
       "What training or professional-development opportunities are available to help you develop AI skills relevant to your role?"
     ],
-    it_staff: [
+    programming_staff: [
       "How prepared do you feel to handle the technical oversight of AI tools in your institution?",
       "How confident are you that your institution has an effective process for updating and reviewing AI policies as technology and risks change?",
       "How involved are you in communicating with leadership regarding institutional needs related to AI?",
@@ -84,6 +84,20 @@
       "How involved are you in decisions about AI implementation, infrastructure, security, data, and technology support?",
       "How confident are you in your understanding of the AI tools you support?",
       "What opportunities are available to help you develop advanced AI knowledge and technical skills relevant to your role?"
+    ],
+    finance_staff: [
+      "How clearly do institutional AI policies address financial controls, procurement, contracts, and approval responsibilities in your area?",
+      "How consistently are you informed when AI policy, vendor, or regulatory changes affect financial operations?",
+      "How effectively does executive leadership resource responsible AI adoption while considering cost, risk, and return on investment?",
+      "How routinely are AI-enabled financial processes reviewed for accuracy, cost, compliance, and unintended impacts?",
+      "How confident are you that AI tools used with financial, payroll, vendor, or student-account information meet institutional privacy and security requirements?",
+      "How effectively are financial and operational data governed, validated, and protected before they are used by AI systems?",
+      "To what extent have approved AI tools improved forecasting, budgeting, purchasing, reporting, or other finance workflows?",
+      "How transparent is the institution about how AI-supported financial decisions, recommendations, or risk signals are generated and used?",
+      "How prepared are you to identify fairness, accountability, accessibility, and bias concerns in AI-supported financial processes?",
+      "How often are finance staff included in institutional planning, governance, and communication about AI implementation?",
+      "How confident are you in understanding the capabilities, limitations, and risks of AI tools relevant to finance work?",
+      "What opportunities are available for you to build practical AI, data, procurement, or financial-governance expertise?"
     ]
   };
 

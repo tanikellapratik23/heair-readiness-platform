@@ -14,13 +14,13 @@ type HeairChunk = {
   metadata: { kind: "framework" | "sub_dimension"; dimensionId?: string; subDimensionId?: string; roles: string[] };
 };
 
-const allRoles = ["student", "faculty", "leadership", "business_affairs", "it_staff"];
+const allRoles = ["student", "faculty", "executive_leadership", "administrative_staff", "programming_staff", "finance_staff"];
 
 export const HEAIR_KNOWLEDGE_CHUNKS: HeairChunk[] = [
   {
     chunkIndex: 0,
     metadata: { kind: "framework", roles: allRoles },
-    text: "HEAIR treats higher-education AI readiness as a parallel, cross-cutting process across stakeholder groups. This platform applies the framework to Students, Faculty, Leadership, Business Affairs, and IT Staff. IT Staff is represented through the framework's technical implementation expectations across governance, infrastructure, culture, and education. HEAIR connects each role's responsibilities across four dimensions: Governance & Strategy, Systems & Infrastructure, Culture, and Education. It is a planning and reflection tool: a low score should guide participatory improvement, not label a person or institution as failing. The paper emphasizes that AI literacy is a shared foundation for every stakeholder group and that readiness depends on technical, organizational, cultural, ethical, and educational work happening together."
+    text: "HEAIR treats higher-education AI readiness as a parallel, cross-cutting process across stakeholder groups. This platform applies the framework to Students, Faculty, Executive Leadership, Administrative Staff, Programming Staff, and Finance Staff. Programming Staff are represented through the framework's technical implementation expectations across governance, infrastructure, culture, and education; Administrative and Finance Staff draw on the framework's operational and business-affairs expectations. HEAIR connects each role's responsibilities across four dimensions: Governance & Strategy, Systems & Infrastructure, Culture, and Education. It is a planning and reflection tool: a low score should guide participatory improvement, not label a person or institution as failing. The paper emphasizes that AI literacy is a shared foundation for every stakeholder group and that readiness depends on technical, organizational, cultural, ethical, and educational work happening together."
   },
   {
     chunkIndex: 1,

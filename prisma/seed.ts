@@ -25,7 +25,7 @@ const subDimensions = [
   ["expertise_development", "education", "Expertise Development", "Opportunities to develop applied AI expertise.", 2],
 ] as const;
 
-type AssessmentRole = "student" | "faculty" | "leadership" | "business_affairs" | "it_staff";
+type AssessmentRole = "student" | "faculty" | "executive_leadership" | "administrative_staff" | "programming_staff" | "finance_staff";
 const defaultLegacyInstitution = "University of North Carolina at Charlotte";
 
 const prompts: Record<AssessmentRole, string[]> = {
@@ -35,14 +35,17 @@ const prompts: Record<AssessmentRole, string[]> = {
   faculty: [
     "Using your personal self-assessment, how similar are your practices to your institution’s AI policies and goals?", "How aware are you of changes to your institution's AI policies that affect your instruction and coursework?", "How involved are you in working with institutional leadership to govern AI usage?", "To what extent do you know the impact of AI systems on your classroom outcomes?", "How concerned are you with the privacy and security of your data when using AI tools for teaching and curriculum-related tasks?", "How effectively does your institution manage the quality, privacy, and security of data used in AI-supported teaching or research?", "To what extent has the integration of AI improved your teaching, research, and course-preparation workflows?", "How transparent is your institution about how AI is used in teaching, learning, and academic decision-making?", "How concerned are you about the ethical implications of AI use in teaching and coursework?", "How involved do you feel in institutional conversations or decisions about AI use?", "On a scale of 1 to 5, how prepared do you feel to use AI tools and understand their uses and limitations?", "What professional-development opportunities are available to help you develop advanced AI skills for teaching, research, or academic work?"
   ],
-  leadership: [
+  executive_leadership: [
     "How often does your institution update its AI policies to align with accreditation standards?", "How confident are you that your institution's AI policies are reviewed and updated to keep up with changes in AI technology and institutional needs?", "How important do you think it is to direct limited institutional resources toward AI projects?", "How often do you offer opportunities for stakeholders to provide feedback on institutional AI initiatives?", "How confident are you that your institution's data privacy and security infrastructure can appropriately support the adoption of AI?", "How effectively does your institution manage the quality, privacy, security, and governance of data used by AI systems?", "To what extent has AI integration improved the efficiency and effectiveness of institutional processes within your area?", "How does your institution ensure transparency and build trust when implementing AI technologies?", "How well do you believe your institution's AI policies address the ethical concerns associated with AI use?", "How effective is your institution's communication of its AI strategy to faculty, staff, and students?", "To what extent do the staff you supervise demonstrate gaps in AI literacy?", "How effectively does your institution support the development of advanced AI knowledge and skills among faculty, staff, and leadership?"
   ],
-  business_affairs: [
+  administrative_staff: [
     "How confident are you that your department has the bandwidth to keep up with changing AI policy and contracts?", "How clear are your institution's AI policies for managing sensitive student data?", "To the best of your knowledge, how would you rate the outcomes of your institution’s investment in AI compared with the cost?", "How often do you review the effectiveness of AI within your institution and its different departments?", "How confident are you that you know which AI tools are approved for use involving sensitive information such as financial or student data?", "How confident are you that data used by AI systems within your department are accurate, secure, and appropriately managed?", "To what extent has the integration of AI improved the efficiency and effectiveness of your department's day-to-day workflows?", "How well does your institution communicate how AI systems are used to support administrative decisions and services?", "How confident are you in identifying ethical uses of AI when handling student data?", "How involved is your division with the deployment, planning, or implementation of your institution's AI strategy?", "How would you rate your overall understanding of AI and its abilities?", "What training or professional-development opportunities are available to help you develop AI skills relevant to your role?"
   ],
-  it_staff: [
+  programming_staff: [
     "How prepared do you feel to handle the technical oversight of AI tools in your institution?", "How confident are you that your institution has an effective process for updating and reviewing AI policies as technology and risks change?", "How involved are you in communicating with leadership regarding institutional needs related to AI?", "Based on your knowledge, how able is your institution to immediately respond to emergencies or failures within AI systems?", "How confident are you that security weaknesses in AI tools are identified and addressed effectively?", "How effectively does your institution maintain data quality, security, and responsible data management for AI applications?", "To what extent is your institution's technical infrastructure capable of effectively supporting integrated AI tools and workflows?", "How are AI system decisions, limitations, and updates communicated to users across the institution?", "How concerned are you about the ethical and institutional risks involving AI tools used across your campus?", "How involved are you in decisions about AI implementation, infrastructure, security, data, and technology support?", "How confident are you in your understanding of the AI tools you support?", "What opportunities are available to help you develop advanced AI knowledge and technical skills relevant to your role?"
+  ],
+  finance_staff: [
+    "How clearly do institutional AI policies address financial controls, procurement, contracts, and approval responsibilities in your area?", "How consistently are you informed when AI policy, vendor, or regulatory changes affect financial operations?", "How effectively does executive leadership resource responsible AI adoption while considering cost, risk, and return on investment?", "How routinely are AI-enabled financial processes reviewed for accuracy, cost, compliance, and unintended impacts?", "How confident are you that AI tools used with financial, payroll, vendor, or student-account information meet institutional privacy and security requirements?", "How effectively are financial and operational data governed, validated, and protected before they are used by AI systems?", "To what extent have approved AI tools improved forecasting, budgeting, purchasing, reporting, or other finance workflows?", "How transparent is the institution about how AI-supported financial decisions, recommendations, or risk signals are generated and used?", "How prepared are you to identify fairness, accountability, accessibility, and bias concerns in AI-supported financial processes?", "How often are finance staff included in institutional planning, governance, and communication about AI implementation?", "How confident are you in understanding the capabilities, limitations, and risks of AI tools relevant to finance work?", "What opportunities are available for you to build practical AI, data, procurement, or financial-governance expertise?"
   ]
 };
 
@@ -50,9 +53,12 @@ async function main() {
   const legacyInstitution = await prisma.institution.upsert({ where: { name: defaultLegacyInstitution }, update: {}, create: { name: defaultLegacyInstitution } });
   await prisma.user.updateMany({ where: { institutionId: null }, data: { institutionId: legacyInstitution.id } });
   await prisma.user.updateMany({ where: { role: null }, data: { role: StakeholderRole.student } });
-  await prisma.user.updateMany({ where: { role: StakeholderRole.administrator_leadership }, data: { role: StakeholderRole.leadership } });
-  await prisma.user.updateMany({ where: { role: StakeholderRole.communications }, data: { role: StakeholderRole.it_staff } });
-  await prisma.user.updateMany({ where: { role: StakeholderRole.academic_business_affairs_staff }, data: { role: StakeholderRole.business_affairs } });
+  await prisma.user.updateMany({ where: { role: { in: [StakeholderRole.leadership, StakeholderRole.administrator_leadership] } }, data: { role: StakeholderRole.executive_leadership } });
+  await prisma.user.updateMany({ where: { role: { in: [StakeholderRole.business_affairs, StakeholderRole.academic_business_affairs_staff] } }, data: { role: StakeholderRole.administrative_staff } });
+  await prisma.user.updateMany({ where: { role: { in: [StakeholderRole.it_staff, StakeholderRole.communications] } }, data: { role: StakeholderRole.programming_staff } });
+  await prisma.assessmentSession.updateMany({ where: { roleAtTime: { in: [StakeholderRole.leadership, StakeholderRole.administrator_leadership] } }, data: { roleAtTime: StakeholderRole.executive_leadership } });
+  await prisma.assessmentSession.updateMany({ where: { roleAtTime: { in: [StakeholderRole.business_affairs, StakeholderRole.academic_business_affairs_staff] } }, data: { roleAtTime: StakeholderRole.administrative_staff } });
+  await prisma.assessmentSession.updateMany({ where: { roleAtTime: { in: [StakeholderRole.it_staff, StakeholderRole.communications] } }, data: { roleAtTime: StakeholderRole.programming_staff } });
 
   for (const [id, label, description, sortOrder] of dimensions) await prisma.dimension.upsert({ where: { id }, update: { label, description, sortOrder }, create: { id, label, description, sortOrder } });
   for (const [id, dimensionId, label, description, sortOrder] of subDimensions) await prisma.subDimension.upsert({ where: { id }, update: { dimensionId, label, description, sortOrder }, create: { id, dimensionId, label, description, sortOrder } });
@@ -65,13 +71,16 @@ async function main() {
   await prisma.knowledgeChunk.deleteMany({ where: { documentId: HEAIR_DOCUMENT_ID } });
   await prisma.knowledgeChunk.createMany({ data: HEAIR_KNOWLEDGE_CHUNKS.map((chunk) => ({ documentId: HEAIR_DOCUMENT_ID, chunkText: chunk.text, chunkIndex: chunk.chunkIndex, metadata: chunk.metadata })) });
 
-  await prisma.question.deleteMany({ where: { sessionScoped: false } });
+  // Preserve questions already referenced by saved response records so report review remains valid.
+  // Unreferenced base questions can safely be replaced on future deployments.
+  await prisma.question.updateMany({ where: { sessionScoped: false, active: true, responses: { some: {} } }, data: { active: false } });
+  await prisma.question.deleteMany({ where: { sessionScoped: false, responses: { none: {} }, triggerRules: { none: {} }, followUpFor: { none: {} } } });
   for (const role of Object.keys(prompts) as AssessmentRole[]) {
     for (let i = 0; i < subDimensions.length; i++) {
       await prisma.question.create({ data: { role: role as StakeholderRole, subDimensionId: subDimensions[i][0], prompt: prompts[role][i], questionType: "likert_5", weight: 1, isAdaptiveSeed: i === 0 || i === 8 } });
     }
   }
-  console.log("Seeded HEAIR taxonomy, 60 role-adaptive base questions, and source-grounded HEAIR retrieval chunks.");
+  console.log("Seeded HEAIR taxonomy, 72 role-adaptive base questions, and source-grounded HEAIR retrieval chunks.");
 }
 
 main().finally(() => prisma.$disconnect());

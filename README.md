@@ -2,7 +2,7 @@
 
 The **HEAIR Readiness Platform** evaluates organizational readiness for AI integration. It provides a structured assessment framework to analyze current infrastructure, processes, and strategy, offering actionable AI-driven coaching insights based on your score.
 
-Working backend for role-adaptive Higher Education AI Readiness (HEAIR) assessments. The fixed HEAIR taxonomy is seeded as four dimensions, twelve sub-dimensions, and 60 role-specific Likert questions.
+Working backend for role-adaptive Higher Education AI Readiness (HEAIR) assessments. The fixed HEAIR taxonomy is seeded as four dimensions, twelve sub-dimensions, and 72 role-specific Likert questions.
 
 ---
 

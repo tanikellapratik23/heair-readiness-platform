@@ -32,7 +32,11 @@ export async function retrieveHeairContext(role: string, scores: Score[], limit 
     const weakSubDimensions = new Set(weakest.map((score) => subDimensionIds[score.subDimension]).filter(Boolean));
     const weakDimensions = new Set(weakest.map((score) => dimensionIds[score.dimension]).filter(Boolean));
     const terms = queryTerms(question);
-    const roleTerms = role === "business_affairs" ? ["business affairs", "business"] : [role.replace(/_/g, " ")];
+    const roleTerms = role === "executive_leadership" ? ["executive leadership", "administrators", "leadership"]
+      : role === "administrative_staff" ? ["administrative staff", "academic and business affairs staff", "business affairs"]
+      : role === "programming_staff" ? ["programming staff", "IT staff", "technical"]
+      : role === "finance_staff" ? ["finance staff", "financial", "business affairs"]
+      : [role.replace(/_/g, " ")];
     const framework = chunks.filter((chunk) => (chunk.metadata as ChunkMetadata | null)?.kind === "framework").slice(0, 1);
     const ranked = chunks
       .filter((chunk) => !framework.some((frameworkChunk) => frameworkChunk.id === chunk.id))

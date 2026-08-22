@@ -45,7 +45,7 @@ type DemoRoleProfiles = {
   profiles: number[][];
 };
 
-// Five synthetic profiles for each of the five current stakeholder roles.
+// Five synthetic profiles for each of the six current stakeholder roles.
 // These scores are for product demonstrations and automated testing only.
 const demoProfiles: DemoRoleProfiles[] = [
   {
@@ -71,8 +71,8 @@ const demoProfiles: DemoRoleProfiles[] = [
     ],
   },
   {
-    role: StakeholderRole.leadership,
-    label: "Leadership",
+    role: StakeholderRole.executive_leadership,
+    label: "Executive Leadership",
     profiles: [
       [75, 70, 75, 70, 65, 65, 70, 70, 75, 75, 70, 75],
       [80, 75, 80, 75, 70, 70, 75, 75, 80, 75, 75, 80],
@@ -82,8 +82,8 @@ const demoProfiles: DemoRoleProfiles[] = [
     ],
   },
   {
-    role: StakeholderRole.business_affairs,
-    label: "Business Affairs",
+    role: StakeholderRole.administrative_staff,
+    label: "Administrative Staff",
     profiles: [
       [65, 65, 70, 65, 65, 70, 65, 60, 65, 60, 65, 70],
       [70, 70, 75, 70, 70, 70, 70, 65, 70, 65, 70, 75],
@@ -93,14 +93,25 @@ const demoProfiles: DemoRoleProfiles[] = [
     ],
   },
   {
-    role: StakeholderRole.it_staff,
-    label: "IT Staff",
+    role: StakeholderRole.programming_staff,
+    label: "Programming Staff",
     profiles: [
       [60, 65, 60, 65, 65, 60, 70, 70, 70, 75, 75, 70],
       [65, 70, 65, 70, 70, 65, 75, 75, 75, 80, 80, 75],
       [60, 60, 55, 60, 60, 60, 65, 65, 70, 70, 70, 65],
       [70, 65, 65, 70, 70, 65, 75, 75, 75, 75, 80, 75],
       [65, 65, 60, 65, 65, 65, 70, 70, 70, 75, 75, 70],
+    ],
+  },
+  {
+    role: StakeholderRole.finance_staff,
+    label: "Finance Staff",
+    profiles: [
+      [65, 65, 70, 65, 65, 70, 65, 60, 65, 60, 65, 70],
+      [70, 70, 75, 70, 70, 70, 70, 65, 70, 65, 70, 75],
+      [60, 65, 65, 60, 65, 65, 60, 60, 65, 65, 60, 65],
+      [70, 65, 70, 65, 70, 75, 70, 65, 70, 70, 70, 70],
+      [65, 70, 65, 70, 65, 70, 65, 65, 65, 65, 70, 65],
     ],
   },
 ];
@@ -110,7 +121,7 @@ function average(values: number[]) {
 }
 
 async function main() {
-  console.log("Writing 25 synthetic HEAIR demonstration assessments.");
+  console.log("Writing 30 synthetic HEAIR demonstration assessments.");
   console.log("This script is for demos and tests only. Do not run it against production data.");
 
   const [dimensionCount, subDimensionCount] = await Promise.all([

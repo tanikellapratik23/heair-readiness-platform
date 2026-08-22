@@ -10,6 +10,11 @@ datasource db {
 enum StakeholderRole {
   student
   faculty
+  executive_leadership
+  administrative_staff
+  programming_staff
+  finance_staff
+  // Retained while existing saved accounts and sessions are migrated.
   leadership
   business_affairs
   it_staff

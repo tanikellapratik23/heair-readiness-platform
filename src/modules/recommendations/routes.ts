@@ -29,7 +29,7 @@ const reportInput = z.object({
   strengths: z.array(z.object({ title: z.string().min(1).max(120), score: z.number().min(0).max(100), description: z.string().min(1).max(800) })).max(3),
   priorities: z.array(z.object({ title: z.string().min(1).max(120), score: z.number().min(0).max(100), description: z.string().min(1).max(800), actions: z.array(z.string().min(1).max(300)).max(4) })).max(3)
 });
-const assessmentRole = z.enum(["student", "faculty", "leadership", "business_affairs", "it_staff"]);
+const assessmentRole = z.enum(["student", "faculty", "executive_leadership", "administrative_staff", "programming_staff", "finance_staff"]);
 const profileInput = z.object({
   role: assessmentRole.optional(),
   institutionName: z.string().trim().min(2).max(180).optional()
@@ -48,7 +48,7 @@ const subDimensionIds: Record<string, string> = {
   "AI Literacy": "ai_literacy", "Expertise Development": "expertise_development"
 };
 const dimensionIds: Record<string, string> = { "Governance & Strategy": "governance_strategy", "Systems & Infrastructure": "systems_infrastructure", Culture: "culture", Education: "education" };
-const activeAssessmentRoles = ["student", "faculty", "leadership", "business_affairs", "it_staff"] as const;
+const activeAssessmentRoles = ["student", "faculty", "executive_leadership", "administrative_staff", "programming_staff", "finance_staff"] as const;
 const minimumCohortRespondents = 5;
 
 function cleanInstitutionName(name: string) {
@@ -69,6 +69,7 @@ type UniversityReadinessInsight = {
   institutionName: string | null;
   averageScore: number | null;
   dimensions: Array<{ dimension: string; averageScore: number }>;
+  subDimensions: Array<{ subDimension: string; averageScore: number }>;
 };
 
 type ScoreProfileItem = { dimension: string; score: number };
@@ -125,7 +126,7 @@ async function getInstitutionComparison(institutionId: string | null, institutio
 }
 
 async function getUniversityReadinessInsight(institutionId: string | null, institutionName: string | null): Promise<UniversityReadinessInsight> {
-  const unavailable = { available: false, institutionName, averageScore: null, dimensions: [] };
+  const unavailable = { available: false, institutionName, averageScore: null, dimensions: [], subDimensions: [] };
   if (!institutionId) return unavailable;
 
   const sessions = await prisma.assessmentSession.findMany({
@@ -141,7 +142,8 @@ async function getUniversityReadinessInsight(institutionId: string | null, insti
       scoreResult: {
         select: {
           overallScore: true,
-          dimensionScores: { select: { score: true, dimension: { select: { label: true } } } }
+          dimensionScores: { select: { score: true, dimension: { select: { label: true } } } },
+          subDimensionScores: { select: { score: true, subDimension: { select: { label: true } } } }
         }
       }
     }
@@ -154,10 +156,15 @@ async function getUniversityReadinessInsight(institutionId: string | null, insti
   if (latestSessions.length < minimumCohortRespondents) return unavailable;
 
   const byDimension = new Map<string, number[]>();
+  const bySubDimension = new Map<string, number[]>();
   for (const session of latestSessions) {
     for (const dimensionScore of session.scoreResult!.dimensionScores) {
       const label = dimensionScore.dimension.label;
       byDimension.set(label, [...(byDimension.get(label) ?? []), Number(dimensionScore.score)]);
+    }
+    for (const subDimensionScore of session.scoreResult!.subDimensionScores) {
+      const label = subDimensionScore.subDimension.label;
+      bySubDimension.set(label, [...(bySubDimension.get(label) ?? []), Number(subDimensionScore.score)]);
     }
   }
 
@@ -168,18 +175,22 @@ async function getUniversityReadinessInsight(institutionId: string | null, insti
     dimensions: Object.keys(dimensionIds).flatMap((dimension) => {
       const scores = byDimension.get(dimension);
       return scores?.length ? [{ dimension, averageScore: rounded(average(scores)) }] : [];
+    }),
+    subDimensions: Object.keys(subDimensionIds).flatMap((subDimension) => {
+      const scores = bySubDimension.get(subDimension);
+      return scores?.length ? [{ subDimension, averageScore: rounded(average(scores)) }] : [];
     })
   };
 }
 
 function roleLabel(role: string) {
-  return ({ student: "Student", faculty: "Faculty", leadership: "Leadership", business_affairs: "Business Affairs", it_staff: "IT Staff", communications: "IT Staff" } as Record<string, string>)[role] ?? role;
+  return ({ student: "Student", faculty: "Faculty", executive_leadership: "Executive Leadership", administrative_staff: "Administrative Staff", programming_staff: "Programming Staff", finance_staff: "Finance Staff", leadership: "Executive Leadership", business_affairs: "Administrative Staff", it_staff: "Programming Staff", communications: "Programming Staff" } as Record<string, string>)[role] ?? role;
 }
 
 function asksAboutAnotherNamedInstitution(question: string, institutionName: string) {
   const match = question.toLocaleLowerCase().match(/\bunc(?:\s+[a-z]+){1,3}\b|\b(?:university|college|institute)\s+(?:of\s+)?(?:[a-z]+\s*){1,5}/i);
   if (!match) return false;
-  const ignored = new Set(["unc", "university", "college", "institute", "of", "the", "at", "for", "from", "my", "our", "your", "a", "an", "and", "readiness", "average", "averages", "score", "scores", "student", "students", "faculty", "leadership", "business", "affairs", "it", "staff"]);
+  const ignored = new Set(["unc", "university", "college", "institute", "of", "the", "at", "for", "from", "my", "our", "your", "a", "an", "and", "readiness", "average", "averages", "score", "scores", "student", "students", "faculty", "executive", "leadership", "administrative", "programming", "finance", "staff"]);
   const requestedWords = match[0].toLocaleLowerCase().match(/[a-z]+/g)?.filter((word) => !ignored.has(word)) ?? [];
   if (!requestedWords.length) return false;
   const accountWords = new Set(institutionName.toLocaleLowerCase().match(/[a-z]+/g) ?? []);

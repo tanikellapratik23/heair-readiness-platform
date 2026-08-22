@@ -44,7 +44,7 @@
 
       <section class="section reveal">
         <div class="section-heading"><span class="eyebrow">Step by step</span><h2>Start with the perspective that fits your work.</h2><p>Readiness looks different across an institution. HEAIR adapts the assessment to the responsibilities of the person completing it.</p></div>
-        <article class="process-card"><div class="process-number">1</div><div><h3>Select your stakeholder role</h3><p>Choose the role that best reflects your current responsibilities. The survey then uses questions relevant to that role, rather than asking every person the same generic questions.</p><div class="role-chips"><span>Student</span><span>Faculty</span><span>Leadership</span><span>Business Affairs</span><span>IT Staff</span></div></div></article>
+        <article class="process-card"><div class="process-number">1</div><div><h3>Select your stakeholder role</h3><p>Choose the role that best reflects your current responsibilities. The survey then uses questions relevant to that role, rather than asking every person the same generic questions.</p><div class="role-chips"><span>Student</span><span>Faculty</span><span>Executive Leadership</span><span>Administrative Staff</span><span>Programming Staff</span><span>Finance Staff</span></div></div></article>
         <article class="process-card"><div class="process-number">2</div><div><h3>Complete your 12-question assessment</h3><p>You answer 12 role-specific questions across the four HEAIR readiness dimensions. There are no trick questions. Choose the response that best reflects your current experience or environment.</p><div class="dimension-list"><span>Governance &amp; Strategy</span><span>Systems &amp; Infrastructure</span><span>Culture</span><span>Education</span></div></div></article>
       </section>
 
@@ -57,17 +57,25 @@
       </section>
 
       <section class="section reveal">
-        <div class="section-heading"><span class="eyebrow">University comparison</span><h2>See your score in the context of your university.</h2><p>When enough people in your stakeholder group at the same university have completed the assessment, your report adds a university comparison directly above the dimension scores.</p></div>
+        <div class="section-heading"><span class="eyebrow">University comparison</span><h2>See your score in the context of your university.</h2><p>When enough people in your stakeholder group at the same university have completed the assessment, your report adds a university comparison after your individual readiness results and priorities.</p></div>
         <div class="university-layout">
           <article class="comparison-card"><h3>What the comparison shows</h3><p>It helps you see whether your latest score is above, below, or in line with others who share your role at your university.</p><div class="comparison-list"><div><b>Overall readiness</b>Your score alongside the university average for your stakeholder group.</div><div><b>Four readiness dimensions</b>Your Governance, Systems, Culture, and Education scores compared with the group average.</div><div><b>Current and fair</b>Each account contributes its latest completed assessment, so repeated attempts do not change the comparison.</div></div></article>
           <aside class="comparison-note"><span>Private by design</span><h3>People are never identified.</h3><p>The comparison appears only after enough completed results are available. It does not show names, emails, individual reports, or rankings.</p></aside>
         </div>
       </section>
 
+      <section class="section reveal">
+        <div class="section-heading"><span class="eyebrow">University dashboard</span><h2>See university-wide readiness patterns.</h2><p>Your signed-in home page adds a university dashboard when enough completed assessments are available. It summarizes the latest completed assessment from each person at your university across all stakeholder groups.</p></div>
+        <div class="university-layout">
+          <article class="comparison-card"><h3>What the dashboard shows</h3><p>It gives your university an aggregate readiness view without mixing it up with your personal report.</p><div class="comparison-list"><div><b>University AI readiness</b>An overall average across represented stakeholder groups.</div><div><b>All twelve sub-dimensions</b>Aggregate scores for Policy and Compliance, Data, AI Literacy, and every other HEAIR sub-dimension.</div><div><b>Built for planning</b>Use patterns across the dashboard to identify where a university roadmap, training, policy work, or infrastructure investment may be most useful.</div></div></article>
+          <aside class="comparison-note"><span>Aggregate by design</span><h3>Personal reports stay personal.</h3><p>The university dashboard uses aggregate scores. Individual responses and reports remain private to the account holder unless an authorized administrator views research data.</p></aside>
+        </div>
+      </section>
+
       <section class="roadmap reveal">
         <span class="eyebrow">Evidence-informed guidance</span>
         <h2>Receive your AI-powered roadmap.</h2>
-        <p>The AI does not create recommendations from the score alone. Your score identifies readiness gaps; the RAG knowledge base retrieves relevant sections of the HEAIR research paper and approved AI-readiness resources; then the AI uses that evidence to create role-specific guidance.</p>
+        <p>The AI does not create recommendations from the score alone. Your individual score identifies role-specific readiness gaps; the RAG knowledge base retrieves relevant sections of the HEAIR research paper and approved AI-readiness resources; then the AI uses that evidence to create guidance. University-level patterns give leaders an evidence base for a broader improvement roadmap.</p>
         <div class="evidence-flow"><article class="evidence-step"><span>YOUR PROFILE</span><b>Score identifies the gaps</b><p>Your role, responses, overall score, dimension scores, and lowest-scoring areas set the focus.</p></article><article class="evidence-step"><span>RAG KNOWLEDGE BASE</span><b>Research supplies context</b><p>Relevant HEAIR evidence and approved resources are retrieved for the profile before advice is written.</p></article><article class="evidence-step"><span>AI ROADMAP</span><b>Guidance becomes actionable</b><p>You receive personalized recommendations, priorities, next steps, longer-term goals, and useful policies, training, tools, or resources.</p></article></div>
         <div class="guidance-note"><b>Important:</b> Recommendations are guidance, not final institutional decisions. Review them with your institution’s policies, experts, and local context before acting on them.</div>
         <p class="sources"><b>Source support:</b> Recommendations are grounded in the HEAIR framework paper and retrieved approved AI-readiness resources. Source references should accompany the guidance so you can understand the evidence behind a recommendation.</p>
@@ -86,9 +94,10 @@
       const roleInsights=[
         {role:'student',label:'Student',averageScore:50.2,description:'Student readiness connects responsible AI use, academic integrity, data privacy, and learning support.'},
         {role:'faculty',label:'Faculty',averageScore:64.8,description:'Faculty readiness connects responsible teaching practice, transparent expectations, and confident classroom use of AI.'},
-        {role:'leadership',label:'Leadership',averageScore:58.6,description:'Leadership readiness connects strategic direction, practical governance, and support for institution wide AI progress.'},
-        {role:'business_affairs',label:'Business Affairs',averageScore:61.4,description:'Business Affairs readiness connects data stewardship, operational safeguards, and useful AI supported workflows.'},
-        {role:'it_staff',label:'IT Staff',averageScore:66.1,description:'IT Staff readiness connects secure infrastructure, data stewardship, technical AI integration, and responsible operations.'}
+        {role:'executive_leadership',label:'Executive Leadership',averageScore:58.6,description:'Executive Leadership readiness connects strategic direction, practical governance, and support for institution wide AI progress.'},
+        {role:'administrative_staff',label:'Administrative Staff',averageScore:61.4,description:'Administrative Staff readiness connects data stewardship, operational safeguards, and useful AI supported workflows.'},
+        {role:'programming_staff',label:'Programming Staff',averageScore:66.1,description:'Programming Staff readiness connects secure infrastructure, data stewardship, technical AI integration, and responsible operations.'},
+        {role:'finance_staff',label:'Finance Staff',averageScore:63.7,description:'Finance Staff readiness connects cost stewardship, responsible procurement, secure financial data, and practical AI operations.'}
       ];
       let insightIndex=0;
       const liveInsightAverages=new Map();

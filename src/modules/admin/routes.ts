@@ -1,11 +1,12 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { SystemRole } from "@prisma/client";
+import { z } from "zod";
 import { currentUser } from "../../lib/auth.js";
 import { fail } from "../../lib/errors.js";
 import { prisma } from "../../lib/prisma.js";
 
 const completedAssessment = { status: "completed" as const, scoreResult: { isNot: null } };
-const activeRoles = ["student", "faculty", "leadership", "business_affairs", "it_staff"] as const;
+const activeRoles = ["student", "faculty", "executive_leadership", "administrative_staff", "programming_staff", "finance_staff"] as const;
 const dimensionColumns = [
   ["governance_strategy", "governance_strategy_score"],
   ["systems_infrastructure", "systems_infrastructure_score"],
@@ -26,6 +27,21 @@ const subDimensionColumns = [
   ["ai_literacy", "ai_literacy_score"],
   ["expertise_development", "expertise_development_score"]
 ] as const;
+const exportQuery = z.object({ institution_id: z.string().uuid().optional() });
+
+async function administrator(request: FastifyRequest, reply: FastifyReply) {
+  try {
+    const user = await currentUser(request);
+    if (!user || user.systemRole !== SystemRole.admin) {
+      fail(reply, 403, "Administrator access is required.");
+      return null;
+    }
+    return user;
+  } catch {
+    fail(reply, 401, "Sign in as an administrator to view this dashboard.");
+    return null;
+  }
+}
 
 function csvCell(value: unknown) {
   const text = value === null || value === undefined ? "" : String(value);
@@ -40,13 +56,7 @@ function csvCell(value: unknown) {
  */
 export async function adminRoutes(app: FastifyInstance) {
   app.get("/admin/overview", async (request, reply) => {
-    let user;
-    try {
-      user = await currentUser(request);
-    } catch {
-      return fail(reply, 401, "Sign in as an administrator to view this dashboard.");
-    }
-    if (!user || user.systemRole !== SystemRole.admin) return fail(reply, 403, "Administrator access is required.");
+    if (!await administrator(request, reply)) return;
 
     const [institutions, respondents] = await Promise.all([
       prisma.institution.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
@@ -70,73 +80,70 @@ export async function adminRoutes(app: FastifyInstance) {
       })
     ]);
 
-    const peopleByInstitution = new Map<string, Array<{
-      id: string;
-      fullName: string | null;
-      email: string;
-      role: string | null;
-      assessmentCount: number;
-      latestScore: number | null;
-      latestAssessmentAt: Date | null;
-    }>>();
-
+    const roleScores = new Map(activeRoles.map((role) => [role, [] as number[]]));
+    const institutionCounts = new Map<string, { respondentCount: number; completedAssessmentCount: number }>();
     for (const respondent of respondents) {
-      if (!respondent.institution) continue;
       const latest = respondent.sessions[0];
-      const person = {
-        id: respondent.id,
-        fullName: respondent.fullName,
-        email: respondent.email,
-        role: respondent.role ?? latest?.roleAtTime ?? null,
-        assessmentCount: respondent._count.sessions,
-        latestScore: latest?.scoreResult ? Number(latest.scoreResult.overallScore) : null,
-        latestAssessmentAt: latest?.completedAt ?? null
-      };
-      peopleByInstitution.set(respondent.institution.id, [...(peopleByInstitution.get(respondent.institution.id) ?? []), person]);
-    }
-
-    const rows = institutions.map((institution) => {
-      const people = peopleByInstitution.get(institution.id) ?? [];
-      return {
-        id: institution.id,
-        name: institution.name,
-        respondentCount: people.length,
-        completedAssessmentCount: people.reduce((sum, person) => sum + person.assessmentCount, 0),
-        people
-      };
-    });
-
-    const roleCounts = new Map(activeRoles.map((role) => [role, 0]));
-    for (const people of peopleByInstitution.values()) {
-      for (const person of people) {
-        if (person.role && roleCounts.has(person.role as (typeof activeRoles)[number])) {
-          roleCounts.set(person.role as (typeof activeRoles)[number], (roleCounts.get(person.role as (typeof activeRoles)[number]) ?? 0) + 1);
-        }
+      const role = respondent.role ?? latest?.roleAtTime;
+      const score = latest?.scoreResult ? Number(latest.scoreResult.overallScore) : null;
+      if (role && roleScores.has(role as (typeof activeRoles)[number]) && score !== null) roleScores.get(role as (typeof activeRoles)[number])?.push(score);
+      if (respondent.institution) {
+        const current = institutionCounts.get(respondent.institution.id) ?? { respondentCount: 0, completedAssessmentCount: 0 };
+        current.respondentCount += 1;
+        current.completedAssessmentCount += respondent._count.sessions;
+        institutionCounts.set(respondent.institution.id, current);
       }
     }
 
     return {
       summary: {
-        institutionCount: rows.length,
+        institutionCount: institutions.length,
         respondentCount: respondents.length,
-        completedAssessmentCount: rows.reduce((sum, institution) => sum + institution.completedAssessmentCount, 0),
-        stakeholderGroups: activeRoles.map((role) => ({ role, respondentCount: roleCounts.get(role) ?? 0 }))
+        completedAssessmentCount: [...institutionCounts.values()].reduce((sum, institution) => sum + institution.completedAssessmentCount, 0),
+        stakeholderGroups: activeRoles.map((role) => {
+          const scores = roleScores.get(role) ?? [];
+          return { role, respondentCount: scores.length, averageLatestScore: scores.length ? Math.round((scores.reduce((sum, score) => sum + score, 0) / scores.length) * 10) / 10 : null };
+        })
       },
-      institutions: rows
+      institutions: institutions.map((institution) => ({ id: institution.id, name: institution.name, ...(institutionCounts.get(institution.id) ?? { respondentCount: 0, completedAssessmentCount: 0 }) }))
+    };
+  });
+
+  app.get("/admin/stakeholders/:role", async (request, reply) => {
+    if (!await administrator(request, reply)) return;
+    const role = (request.params as { role: string }).role;
+    if (!activeRoles.includes(role as (typeof activeRoles)[number])) return fail(reply, 404, "Stakeholder group not found.");
+    const respondents = await prisma.user.findMany({
+      where: { sessions: { some: { ...completedAssessment, roleAtTime: role as (typeof activeRoles)[number] } } },
+      orderBy: [{ institution: { name: "asc" } }, { email: "asc" }],
+      select: {
+        fullName: true,
+        email: true,
+        institution: { select: { name: true } },
+        sessions: { where: { ...completedAssessment, roleAtTime: role as (typeof activeRoles)[number] }, orderBy: { completedAt: "desc" }, take: 1, select: { completedAt: true, scoreResult: { select: { overallScore: true } } } },
+        _count: { select: { sessions: { where: { ...completedAssessment, roleAtTime: role as (typeof activeRoles)[number] } } } }
+      }
+    });
+    return {
+      role,
+      people: respondents.map((person) => ({
+        fullName: person.fullName,
+        email: person.email,
+        institutionName: person.institution?.name ?? "Institution not set",
+        latestScore: person.sessions[0]?.scoreResult ? Number(person.sessions[0].scoreResult.overallScore) : null,
+        latestAssessmentAt: person.sessions[0]?.completedAt ?? null,
+        assessmentCount: person._count.sessions
+      }))
     };
   });
 
   app.get("/admin/export.csv", async (request, reply) => {
-    let user;
-    try {
-      user = await currentUser(request);
-    } catch {
-      return fail(reply, 401, "Sign in as an administrator to export assessment data.");
-    }
-    if (!user || user.systemRole !== SystemRole.admin) return fail(reply, 403, "Administrator access is required.");
+    if (!await administrator(request, reply)) return;
+    const query = exportQuery.safeParse(request.query);
+    if (!query.success) return fail(reply, 400, "Choose a valid university for this export.");
 
     const sessions = await prisma.assessmentSession.findMany({
-      where: completedAssessment,
+      where: { ...completedAssessment, ...(query.data.institution_id ? { user: { institutionId: query.data.institution_id } } : {}) },
       orderBy: [{ user: { institution: { name: "asc" } } }, { completedAt: "desc" }],
       include: {
         user: {
