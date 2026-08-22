@@ -66,6 +66,7 @@ type InstitutionComparison = {
 
 type UniversityReadinessInsight = {
   available: boolean;
+  isPreview: boolean;
   institutionName: string | null;
   averageScore: number | null;
   dimensions: Array<{ dimension: string; averageScore: number }>;
@@ -80,6 +81,36 @@ function average(values: number[]) {
 
 function rounded(value: number) {
   return Math.round(value * 10) / 10;
+}
+
+// Used only to render the university-dashboard layout before a university has
+// enough completed accounts for a privacy-safe live aggregate. These values are
+// never stored, exported, included in comparisons, or shown as real results.
+const universityDashboardPreview = {
+  "Policy & Compliance": 61.2,
+  "AI Governance & Access": 59.8,
+  "Leadership & Resourcing": 57.6,
+  "Monitoring & Evaluation": 60.4,
+  "Infrastructure, Privacy & Security": 63.1,
+  Data: 58.9,
+  "AI Integration & Use Cases": 60.7,
+  "Trust & Transparency": 62.3,
+  "Ethics & Responsible Use": 65.2,
+  "Stakeholder Engagement & Awareness": 63.6,
+  "AI Literacy": 67.4,
+  "Expertise Development": 64.8
+} as const;
+
+function previewUniversityReadinessInsight(institutionName: string | null): UniversityReadinessInsight {
+  const subDimensions = Object.keys(subDimensionIds).map((subDimension) => ({ subDimension, averageScore: universityDashboardPreview[subDimension as keyof typeof universityDashboardPreview] }));
+  const dimensions = Object.keys(dimensionIds).map((dimension) => {
+    const scores = subDimensions.filter((item) => {
+      const index = Object.keys(subDimensionIds).indexOf(item.subDimension);
+      return (index < 4 && dimension === "Governance & Strategy") || (index >= 4 && index < 7 && dimension === "Systems & Infrastructure") || (index >= 7 && index < 10 && dimension === "Culture") || (index >= 10 && dimension === "Education");
+    }).map((item) => item.averageScore);
+    return { dimension, averageScore: rounded(average(scores)) };
+  });
+  return { available: true, isPreview: true, institutionName, averageScore: rounded(average(dimensions.map((item) => item.averageScore))), dimensions, subDimensions };
 }
 
 function dimensionAverages(scores: ScoreProfileItem[]) {
@@ -126,7 +157,7 @@ async function getInstitutionComparison(institutionId: string | null, institutio
 }
 
 async function getUniversityReadinessInsight(institutionId: string | null, institutionName: string | null): Promise<UniversityReadinessInsight> {
-  const unavailable = { available: false, institutionName, averageScore: null, dimensions: [], subDimensions: [] };
+  const unavailable = { available: false, isPreview: false, institutionName, averageScore: null, dimensions: [], subDimensions: [] };
   if (!institutionId) return unavailable;
 
   const sessions = await prisma.assessmentSession.findMany({
@@ -153,7 +184,7 @@ async function getUniversityReadinessInsight(institutionId: string | null, insti
   const latestByUser = new Map<string, (typeof sessions)[number]>();
   for (const session of sessions) if (!latestByUser.has(session.userId)) latestByUser.set(session.userId, session);
   const latestSessions = [...latestByUser.values()].filter((session) => Boolean(session.scoreResult));
-  if (latestSessions.length < minimumCohortRespondents) return unavailable;
+  if (latestSessions.length < minimumCohortRespondents) return previewUniversityReadinessInsight(institutionName);
 
   const byDimension = new Map<string, number[]>();
   const bySubDimension = new Map<string, number[]>();
@@ -170,6 +201,7 @@ async function getUniversityReadinessInsight(institutionId: string | null, insti
 
   return {
     available: true,
+    isPreview: false,
     institutionName,
     averageScore: rounded(average(latestSessions.map((session) => Number(session.scoreResult!.overallScore)))),
     dimensions: Object.keys(dimensionIds).flatMap((dimension) => {
