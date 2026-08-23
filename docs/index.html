@@ -235,6 +235,15 @@
         $('universityInsightDescription').textContent=message;
         $('universityDashboard')?.classList.add('hidden');
       }
+      const universityDashboardPreview=[['Policy & Compliance',61.2],['AI Governance & Access',59.8],['Leadership & Resourcing',57.6],['Monitoring & Evaluation',60.4],['Infrastructure, Privacy & Security',63.1],['Data',58.9],['AI Integration & Use Cases',60.7],['Trust & Transparency',62.3],['Ethics & Responsible Use',65.2],['Stakeholder Engagement & Awareness',63.6],['AI Literacy',67.4],['Expertise Development',64.8]];
+      function showUniversityDashboardPreview(institutionName){
+        const subDimensions=universityDashboardPreview.map(([subDimension,averageScore])=>({subDimension,averageScore}));
+        renderUniversityDashboard({available:true,isPreview:true,institutionName,averageScore:62.1,subDimensions});
+        $('universityInsightRole').textContent=institutionName;
+        $('universityInsightValue').innerHTML='62.1<span> / 100</span>';
+        $('universityInsightCaption').textContent='Preview readiness';
+        $('universityInsightDescription').textContent='Synthetic preview values are shown until five different people at your university complete an assessment.';
+      }
       function renderUniversityDashboard(insight){
         const dashboard=$('universityDashboard'),subDimensions=Array.isArray(insight?.subDimensions)?insight.subDimensions:[];
         if(!insight?.available||typeof insight.averageScore!=='number'||!subDimensions.length){dashboard.classList.add('hidden');return;}
@@ -259,7 +268,7 @@
         try{
           const insight=await api('/public/university-readiness');
           if(!insight.available||typeof insight.averageScore!=='number'){
-            setUniversityInsightUnavailable(`University readiness will appear here when enough people at ${institutionName} have completed an assessment.`);
+            showUniversityDashboardPreview(institutionName);
             return;
           }
           $('universityInsightRole').textContent=insight.institutionName||institutionName;
@@ -268,7 +277,7 @@
           $('universityInsightDescription').textContent=insight.isPreview?'Synthetic preview values are shown until five different people at your university complete an assessment.':'This university-wide score uses the latest completed assessment from each person across the stakeholder groups represented.';
           renderUniversityDashboard(insight);
         }catch{
-          setUniversityInsightUnavailable('University readiness is temporarily unavailable. Please try again later.');
+          showUniversityDashboardPreview(institutionName);
         }
       }
       function showSignedIn(user){
