@@ -23,8 +23,8 @@ const chatInput = z.object({
     z.object({ role: z.literal("assistant"), content: z.string().min(1).max(3000) })
   ])).min(1).max(7).optional(),
   message: z.string().trim().min(1).max(1200).optional(),
-  conversationId: z.string().uuid().optional(),
-  assessmentId: z.string().uuid().optional(),
+  conversationId: z.string().uuid().nullable().optional(),
+  assessmentId: z.string().uuid().nullable().optional(),
   title: z.string().trim().min(1).max(180).optional()
 }).refine((value) => Boolean(value.message || value.messages?.some((message) => message.role === "user")), { message: "Provide a message for the AI coach." });
 
@@ -539,7 +539,7 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
     if (!user.institutionId || !user.institution?.name) return reply.code(400).send({ error: "Complete your account before using the AI readiness coach." });
     if (!process.env.ANTHROPIC_API_KEY) return reply.code(503).send({ error: "AI score chat is not configured." });
     try {
-      const profile = await authorizedAssessmentProfile(user.id, body.data.assessmentId);
+      const profile = await authorizedAssessmentProfile(user.id, body.data.assessmentId ?? undefined);
       if (!profile) return reply.code(404).send({ error: "Complete and save an assessment before starting a coaching conversation." });
       if (body.data.role && body.data.role !== profile.role) return reply.code(403).send({ error: "The selected report does not match the requested stakeholder role." });
       if (!user.stakeholderRoles.some((savedRole) => savedRole.role === profile.role)) return reply.code(403).send({ error: "This assessment role is no longer available to your account." });
