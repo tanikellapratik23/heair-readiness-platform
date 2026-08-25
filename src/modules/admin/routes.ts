@@ -58,7 +58,7 @@ export async function adminRoutes(app: FastifyInstance) {
   app.get("/admin/overview", async (request, reply) => {
     if (!await administrator(request, reply)) return;
 
-    const [institutions, respondents] = await Promise.all([
+    const [institutions, respondents, completedSessions] = await Promise.all([
       prisma.institution.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
       prisma.user.findMany({
         where: { sessions: { some: completedAssessment } },
@@ -77,16 +77,22 @@ export async function adminRoutes(app: FastifyInstance) {
           },
           _count: { select: { sessions: { where: completedAssessment } } }
         }
-      })
+      }),
+      prisma.assessmentSession.findMany({ where: { ...completedAssessment, roleAtTime: { in: [...activeRoles] } }, orderBy: { completedAt: "desc" }, select: { userId: true, roleAtTime: true, scoreResult: { select: { overallScore: true } } } })
     ]);
 
     const roleScores = new Map(activeRoles.map((role) => [role, [] as number[]]));
+    const latestByRoleAndPerson = new Map<string, (typeof completedSessions)[number]>();
+    for (const session of completedSessions) {
+      const key = `${session.userId}:${session.roleAtTime}`;
+      if (!latestByRoleAndPerson.has(key)) latestByRoleAndPerson.set(key, session);
+    }
+    for (const session of latestByRoleAndPerson.values()) {
+      const score = session.scoreResult ? Number(session.scoreResult.overallScore) : null;
+      if (score !== null && Number.isFinite(score)) roleScores.get(session.roleAtTime as (typeof activeRoles)[number])?.push(score);
+    }
     const institutionCounts = new Map<string, { respondentCount: number; completedAssessmentCount: number }>();
     for (const respondent of respondents) {
-      const latest = respondent.sessions[0];
-      const role = respondent.role ?? latest?.roleAtTime;
-      const score = latest?.scoreResult ? Number(latest.scoreResult.overallScore) : null;
-      if (role && roleScores.has(role as (typeof activeRoles)[number]) && score !== null) roleScores.get(role as (typeof activeRoles)[number])?.push(score);
       if (respondent.institution) {
         const current = institutionCounts.get(respondent.institution.id) ?? { respondentCount: 0, completedAssessmentCount: 0 };
         current.respondentCount += 1;
@@ -138,7 +144,7 @@ export async function adminRoutes(app: FastifyInstance) {
   });
 
   app.get("/admin/export.csv", async (request, reply) => {
-    if (!await administrator(request, reply)) return;
+    const admin = await administrator(request, reply); if (!admin) return;
     const query = exportQuery.safeParse(request.query);
     if (!query.success) return fail(reply, 400, "Choose a valid university for this export.");
 
@@ -214,6 +220,7 @@ export async function adminRoutes(app: FastifyInstance) {
     });
 
     const csv = [headers.map(csvCell).join(","), ...rows].join("\n");
+    await prisma.exportAuditLog.create({ data: { userId: admin.id, exportType: "administrator_assessment_csv", scope: { institutionId: query.data.institution_id ?? null, completedAssessmentCount: sessions.length, includesIndividualData: true } } });
     return reply
       .type("text/csv; charset=utf-8")
       .header("Content-Disposition", 'attachment; filename="heair-assessment-export.csv"')

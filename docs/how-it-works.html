@@ -25,10 +25,10 @@
         <aside class="hero-card" aria-live="polite">
           <p class="insight-label">READINESS INSIGHT</p>
           <div id="insightContent">
-            <div id="insightRole" class="insight-role">Student</div>
-            <div id="insightValue" class="insight-value">50.2<span> / 100</span></div>
+            <div id="insightRole" class="insight-role">Readiness data</div>
+            <div id="insightValue" class="insight-value">Building<span> insight</span></div>
             <div id="insightCaption" class="insight-caption">Average readiness</div>
-            <p id="insightDescription" class="insight-description">Student readiness connects responsible AI use, academic integrity, data privacy, and learning support.</p>
+            <p id="insightDescription" class="insight-description">Public readiness averages appear only when the privacy threshold for a stakeholder group is met.</p>
             <div id="insightDots" class="insight-dots" aria-label="Stakeholder readiness insights"></div>
           </div>
         </aside>
@@ -45,13 +45,13 @@
       <section class="section reveal">
         <div class="section-heading"><span class="eyebrow">Step by step</span><h2>Start with the perspective that fits your work.</h2><p>Readiness looks different across an institution. HEAIR adapts the assessment to the responsibilities of the person completing it.</p></div>
         <article class="process-card"><div class="process-number">1</div><div><h3>Select your stakeholder role</h3><p>Choose the role that best reflects your current responsibilities. The survey then uses questions relevant to that role, rather than asking every person the same generic questions.</p><div class="role-chips"><span>Student</span><span>Faculty</span><span>Executive Leadership</span><span>Administrative Staff</span><span>Programming Staff</span><span>Finance Staff</span></div></div></article>
-        <article class="process-card"><div class="process-number">2</div><div><h3>Complete your 12-question assessment</h3><p>You answer 12 role-specific questions across the four HEAIR readiness dimensions. There are no trick questions. Choose the response that best reflects your current experience or environment.</p><div class="dimension-list"><span>Governance &amp; Strategy</span><span>Systems &amp; Infrastructure</span><span>Culture</span><span>Education</span></div></div></article>
+        <article class="process-card"><div class="process-number">2</div><div><h3>Complete your 12-question assessment</h3><p>You answer 12 role-specific questions across the four HEAIR readiness dimensions. You can move Back and Next, review every answer before submitting, and use Not sure or Not applicable when a question is outside your knowledge or role.</p><div class="dimension-list"><span>Governance &amp; Strategy</span><span>Systems &amp; Infrastructure</span><span>Culture</span><span>Education</span></div></div></article>
       </section>
 
       <section class="section reveal">
-        <div class="section-heading"><span class="eyebrow">Your results</span><h2>Understand the score before deciding what to do next.</h2><p>Your responses are normalized into an overall AI-readiness score, a readiness level, and four dimension scores. The result gives you a clear picture without pretending that one number tells the whole story.</p></div>
+        <div class="section-heading"><span class="eyebrow">Your results</span><h2>Understand the score before deciding what to do next.</h2><p>Your valid responses are normalized into an overall AI-readiness result and four dimension scores. Not sure and Not applicable answers do not become zero; the report shows response coverage instead.</p></div>
         <div class="score-layout">
-          <article class="process-card" style="margin-top:0"><div class="process-number">3</div><div><h3>What your report shows</h3><div class="score-list"><div><i>✓</i><span>How your overall score was calculated from the 12 responses.</span></div><div><i>✓</i><span>What your readiness level means in practical terms.</span></div><div><i>✓</i><span>Which HEAIR dimensions increased or lowered your score.</span></div><div><i>✓</i><span>Your strongest areas to build on and weakest areas to improve first.</span></div><div><i>✓</i><span>How your score compares with your stakeholder group at your university when enough completed results are available.</span></div></div></div></article>
+          <article class="process-card" style="margin-top:0"><div class="process-number">3</div><div><h3>What your report shows</h3><div class="score-list"><div><i>✓</i><span>How your overall score was calculated from the 12 responses.</span></div><div><i>✓</i><span>How response coverage affects the interpretation.</span></div><div><i>✓</i><span>Which HEAIR dimensions increased or lowered your score.</span></div><div><i>✓</i><span>Your strongest areas to build on and weakest areas to improve first.</span></div><div><i>✓</i><span>How your score compares with your stakeholder group at your university when enough completed results are available.</span></div></div></div></article>
           <aside class="learn-card"><span class="chat-title">Learn more about my score</span><h3>Open a conversation about your results.</h3><p>The option on your report opens a full-screen coaching chat. It carries your role, score profile, strengths, and priority areas into the conversation.</p><div class="chat-preview"><div class="question">What should I focus on first?</div><div class="answer">Your coach explains the first practical move based on your score profile and the HEAIR guidance retrieved for it.</div></div></aside>
         </div>
       </section>
@@ -92,22 +92,22 @@
     <script src="config.js"></script>
     <script>
       const roleInsights=[
-        {role:'student',label:'Student',averageScore:50.2,description:'Student readiness connects responsible AI use, academic integrity, data privacy, and learning support.'},
-        {role:'faculty',label:'Faculty',averageScore:64.8,description:'Faculty readiness connects responsible teaching practice, transparent expectations, and confident classroom use of AI.'},
-        {role:'executive_leadership',label:'Executive Leadership',averageScore:58.6,description:'Executive Leadership readiness connects strategic direction, practical governance, and support for institution wide AI progress.'},
-        {role:'administrative_staff',label:'Administrative Staff',averageScore:61.4,description:'Administrative Staff readiness connects data stewardship, operational safeguards, and useful AI supported workflows.'},
-        {role:'programming_staff',label:'Programming Staff',averageScore:66.1,description:'Programming Staff readiness connects secure infrastructure, data stewardship, technical AI integration, and responsible operations.'},
-        {role:'finance_staff',label:'Finance Staff',averageScore:63.7,description:'Finance Staff readiness connects cost stewardship, responsible procurement, secure financial data, and practical AI operations.'}
+        {role:'student',label:'Student',description:'Student readiness connects responsible AI use, academic integrity, data privacy, and learning support.'},
+        {role:'faculty',label:'Faculty',description:'Faculty readiness connects responsible teaching practice, transparent expectations, and confident classroom use of AI.'},
+        {role:'executive_leadership',label:'Executive Leadership',description:'Executive Leadership readiness connects strategic direction, practical governance, and support for institution-wide AI progress.'},
+        {role:'administrative_staff',label:'Administrative Staff',description:'Administrative Staff readiness connects data stewardship, operational safeguards, and useful AI-supported workflows.'},
+        {role:'programming_staff',label:'Programming Staff',description:'Programming Staff readiness connects secure infrastructure, data stewardship, technical AI integration, and responsible operations.'},
+        {role:'finance_staff',label:'Finance Staff',description:'Finance Staff readiness connects cost stewardship, responsible procurement, secure financial data, and practical AI operations.'}
       ];
       let insightIndex=0;
       const liveInsightAverages=new Map();
       function renderInsight(){
-        const insight=roleInsights[insightIndex],liveAverage=liveInsightAverages.get(insight.role),average=liveAverage??insight.averageScore,content=document.getElementById('insightContent');
+        const insight=roleInsights[insightIndex],liveAverage=liveInsightAverages.get(insight.role),content=document.getElementById('insightContent');
         content.classList.remove('insight-changing');void content.offsetWidth;content.classList.add('insight-changing');
         document.getElementById('insightRole').textContent=insight.label;
-        document.getElementById('insightValue').innerHTML=`${average.toFixed(1)}<span> / 100</span>`;
+        document.getElementById('insightValue').innerHTML=liveAverage!==undefined?`${liveAverage.toFixed(1)}<span> / 100</span>`:'Building<span> insight</span>';
         document.getElementById('insightCaption').textContent='Average readiness';
-        document.getElementById('insightDescription').textContent=liveAverage!==undefined?`${insight.description} This score reflects completed ${insight.label} assessments.`:`${insight.description} This starting benchmark will update as completed assessments are saved.`;
+        document.getElementById('insightDescription').textContent=liveAverage!==undefined?`${insight.description} This score reflects privacy-safe completed ${insight.label} assessments.`:`${insight.description} An average will appear when enough completed assessments protect respondent privacy.`;
         document.getElementById('insightDots').innerHTML=roleInsights.map((item,position)=>`<button class="insight-dot ${position===insightIndex?'active':''}" aria-label="Show ${item.label} readiness" aria-pressed="${position===insightIndex}" onclick="setInsight(${position})"></button>`).join('');
       }
       function setInsight(position){insightIndex=position;renderInsight();}

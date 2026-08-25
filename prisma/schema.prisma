@@ -52,13 +52,27 @@ enum KnowledgeSourceType {
   research_paper
   best_practice
 }
+enum MethodologyApprovalStatus {
+  draft
+  approved
+  retired
+}
+enum ActionPlanStatus {
+  not_started
+  planned
+  in_progress
+  completed
+  dismissed
+}
 
 model Institution {
   id String @id @default(uuid()) @db.Uuid
   name String @unique
+  unitLabel String @default("Department or unit")
   createdAt DateTime @default(now())
   departments Department[]
   users User[]
+  methodologies AssessmentMethodology[]
 }
 
 model Department {
@@ -78,6 +92,7 @@ model User {
   passwordHash String
   fullName String?
   role StakeholderRole?
+  unitName String?
   systemRole SystemRole @default(self)
   departmentId String? @db.Uuid
   institutionId String? @db.Uuid
@@ -86,6 +101,22 @@ model User {
   department Department? @relation(fields: [departmentId], references: [id])
   institution Institution? @relation(fields: [institutionId], references: [id])
   sessions AssessmentSession[]
+  stakeholderRoles UserStakeholderRole[]
+  conversations ChatConversation[]
+  actionPlanItems ActionPlanItem[]
+  exportAuditLogs ExportAuditLog[]
+}
+
+model UserStakeholderRole {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  role StakeholderRole
+  approvedAt DateTime?
+  verificationPending Boolean @default(false)
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, role])
+  @@index([role])
 }
 
 model Dimension {
@@ -96,6 +127,8 @@ model Dimension {
   subDimensions SubDimension[]
   scores DimensionScore[]
   aggregates DepartmentAggregateScore[]
+  assessmentComments AssessmentDimensionComment[]
+  actionPlanItems ActionPlanItem[]
 }
 
 model SubDimension {
@@ -108,6 +141,7 @@ model SubDimension {
   questions Question[]
   scores SubDimensionScore[]
   recommendations Recommendation[]
+  actionPlanItems ActionPlanItem[]
 }
 
 model Question {
@@ -115,6 +149,7 @@ model Question {
   role StakeholderRole
   subDimensionId String
   prompt String
+  helpText String?
   questionType QuestionType @default(likert_5)
   options Json?
   scoringKey Json?
@@ -122,6 +157,8 @@ model Question {
   weight Decimal @default(1) @db.Decimal(8,2)
   active Boolean @default(true)
   sessionScoped Boolean @default(false)
+  allowNotApplicable Boolean @default(true)
+  allowDepartmentScope Boolean @default(true)
   createdAt DateTime @default(now())
   subDimension SubDimension @relation(fields: [subDimensionId], references: [id])
   responses QuestionResponse[]
@@ -144,6 +181,9 @@ model AssessmentSession {
   userId String @db.Uuid
   roleAtTime StakeholderRole
   departmentIdAtTime String? @db.Uuid
+  unitNameAtTime String?
+  methodologyVersion String @default("heair-v1-provisional")
+  clientSubmissionId String? @unique @db.Uuid
   status SessionStatus @default(in_progress)
   startedAt DateTime @default(now())
   completedAt DateTime?
@@ -151,6 +191,21 @@ model AssessmentSession {
   responses QuestionResponse[]
   scoreResult ScoreResult?
   report ReadinessReport?
+  dimensionComments AssessmentDimensionComment[]
+  conversations ChatConversation[]
+  actionPlanItems ActionPlanItem[]
+}
+
+model AssessmentDimensionComment {
+  id String @id @default(uuid()) @db.Uuid
+  sessionId String @db.Uuid
+  dimensionId String
+  text String @db.VarChar(1200)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  session AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  dimension Dimension @relation(fields: [dimensionId], references: [id])
+  @@unique([sessionId, dimensionId])
 }
 
 model QuestionResponse {
@@ -173,6 +228,10 @@ model ScoreResult {
   id String @id @default(uuid()) @db.Uuid
   sessionId String @unique @db.Uuid
   overallScore Decimal @db.Decimal(5,2)
+  methodologyVersion String @default("heair-v1-provisional")
+  scoredResponseCount Int @default(0)
+  excludedResponseCount Int @default(0)
+  responseCoveragePercent Int @default(0)
   computedAt DateTime @default(now())
   session AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   dimensionScores DimensionScore[]
@@ -205,6 +264,8 @@ model KnowledgeDocument {
   sourceTitle String
   sourceType KnowledgeSourceType
   sourceUrlOrCitation String?
+  publisher String?
+  publishedAt DateTime?
   rawText String
   createdAt DateTime @default(now())
   chunks KnowledgeChunk[]
@@ -258,4 +319,78 @@ model DepartmentAggregateScore {
   department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   dimension Dimension @relation(fields: [dimensionId], references: [id])
   @@unique([departmentId, dimensionId, periodStart, periodEnd])
+}
+
+model AssessmentMethodology {
+  id String @id @default(uuid()) @db.Uuid
+  version String @unique
+  title String
+  owner String
+  citation String?
+  sourceUrl String?
+  approvalStatus MethodologyApprovalStatus @default(draft)
+  approvedAt DateTime?
+  configuration Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  institutionId String? @db.Uuid
+  institution Institution? @relation(fields: [institutionId], references: [id], onDelete: SetNull)
+}
+
+model ChatConversation {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  assessmentSessionId String? @db.Uuid
+  title String @db.VarChar(180)
+  methodologyVersion String @default("heair-v1-provisional")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assessmentSession AssessmentSession? @relation(fields: [assessmentSessionId], references: [id], onDelete: SetNull)
+  messages ChatMessage[]
+  @@index([userId, updatedAt])
+}
+
+model ChatMessage {
+  id String @id @default(uuid()) @db.Uuid
+  conversationId String @db.Uuid
+  role String @db.VarChar(20)
+  content String @db.VarChar(4000)
+  sources Json?
+  createdAt DateTime @default(now())
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  @@index([conversationId, createdAt])
+}
+
+model ActionPlanItem {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  assessmentSessionId String? @db.Uuid
+  title String @db.VarChar(180)
+  whyItMatters String @db.VarChar(1200)
+  dimensionId String?
+  subDimensionId String?
+  assessmentEvidence String? @db.VarChar(1200)
+  suggestedOwner String? @db.VarChar(180)
+  suggestedDeadline DateTime? @db.Date
+  status ActionPlanStatus @default(not_started)
+  example String? @db.VarChar(1200)
+  supportingSources Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assessmentSession AssessmentSession? @relation(fields: [assessmentSessionId], references: [id], onDelete: SetNull)
+  dimension Dimension? @relation(fields: [dimensionId], references: [id])
+  subDimension SubDimension? @relation(fields: [subDimensionId], references: [id])
+  @@index([userId, status])
+}
+
+model ExportAuditLog {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  exportType String @db.VarChar(80)
+  scope Json
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, createdAt])
 }

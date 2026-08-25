@@ -15,7 +15,7 @@ export type PublicAiReport = {
 function fallbackReport(overallScore: number, scores: PublicReadinessScore[]): PublicAiReport {
   const ordered = [...scores].sort((a, b) => a.score - b.score);
   const weakest = ordered.slice(0, 3), strongest = ordered.slice(-3).reverse();
-  const stage = overallScore < 40 ? "Early development" : overallScore < 60 ? "Developing" : overallScore < 80 ? "Established" : "Leading";
+  const stage = "Readiness result";
   return {
     stage,
     headline: `${stage} AI readiness`,
@@ -58,7 +58,7 @@ export async function generatePublicAiReport(role: string, overallScore: number,
       messages: [{ role: "user", content: JSON.stringify({
         role, overallScore, scores,
         requiredShape: {
-          stage: "Early development | Developing | Established | Leading",
+          stage: "Readiness result",
           headline: "short positive title",
           summary: "two concise sentences",
           strengths: [{ title: "score name", score: 0, description: "why this is useful" }],

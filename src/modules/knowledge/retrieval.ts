@@ -26,7 +26,7 @@ export async function retrieveHeairContext(role: string, scores: Score[], limit 
   try {
     const chunks = await prisma.knowledgeChunk.findMany({
       where: { document: { sourceType: "heair_paper" } },
-      include: { document: { select: { sourceTitle: true, sourceUrlOrCitation: true } } }
+      include: { document: { select: { sourceTitle: true, sourceUrlOrCitation: true, publisher: true, publishedAt: true, sourceType: true } } }
     });
     const weakest = [...scores].sort((left, right) => left.score - right.score).slice(0, 3);
     const weakSubDimensions = new Set(weakest.map((score) => subDimensionIds[score.subDimension]).filter(Boolean));
@@ -55,6 +55,9 @@ export async function retrieveHeairContext(role: string, scores: Score[], limit 
     return [...framework, ...ranked.map((item) => item.chunk)].map((chunk) => ({
       sourceTitle: chunk.document.sourceTitle || HEAIR_SOURCE_TITLE,
       citation: chunk.document.sourceUrlOrCitation,
+      publisher: chunk.document.publisher,
+      publishedAt: chunk.document.publishedAt?.toISOString() ?? null,
+      sourceType: chunk.document.sourceType,
       section: ((chunk.metadata as ChunkMetadata | null)?.subDimensionId && subDimensionLabels[(chunk.metadata as ChunkMetadata).subDimensionId!]) || "HEAIR framework",
       text: chunk.chunkText
     }));

@@ -13,11 +13,13 @@ export async function currentUser(request: FastifyRequest) {
       email: true,
       fullName: true,
       role: true,
+      unitName: true,
       systemRole: true,
       departmentId: true,
       institutionId: true,
       department: { select: { id: true, name: true, institutionId: true } },
-      institution: { select: { id: true, name: true } }
+      institution: { select: { id: true, name: true } },
+      stakeholderRoles: { select: { role: true, approvedAt: true, verificationPending: true }, orderBy: { createdAt: "asc" } }
     }
   });
 }
