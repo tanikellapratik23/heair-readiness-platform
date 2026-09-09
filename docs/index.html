@@ -297,11 +297,14 @@
         $('accountAreaTitle').textContent=login?'Welcome back':'Create your account';$('accountAreaDescription').textContent=login?'Sign in to access your saved reports.':'Choose your stakeholder role and college, then save your assessment and personalized report.';$('accountTitle').textContent=login?'Welcome back':'Create your account';$('accountDescription').textContent=login?'Sign in to view your saved HEAIR assessments.':'Your selected stakeholder role and college are saved permanently to this account.';$('startButton').textContent=login?'Sign in to view saved results':'Create account and start assessment';$('accountSwitch').textContent=login?'New here? Create an account':'Already have an account? Sign in';$('password').autocomplete=login?'current-password':'new-password';$('confirmPasswordField').classList.toggle('hidden',login);$('passwordRequirements').classList.toggle('hidden',login);validatePasswords();
       }
       function toggleAuthMode(){setAuthMode(authMode==='register'?'login':'register');}
+      const temporaryRoleAverages={student:54.2,faculty:63.8,executive_leadership:67.1,administrative_staff:58.6,programming_staff:65.4,finance_staff:61.9};
       function setUniversityInsightUnavailable(message){
+        const role=legacyRoleMap[signedInUser?.role]||signedInUser?.role||'student';
+        const previewScore=temporaryRoleAverages[role]??60;
         $('universityInsightRole').textContent=signedInUser?.institution?.name||'University readiness';
-        $('universityInsightValue').innerHTML='Building<span> insight</span>';
+        $('universityInsightValue').innerHTML=`${previewScore.toFixed(1)}<span> / 100</span>`;
         $('universityInsightCaption').textContent='Average readiness';
-        $('universityInsightDescription').textContent=message;
+        $('universityInsightDescription').textContent=`${message} A temporary role-based preview is shown until a privacy-safe university average is available.`;
         $('universityDashboard')?.classList.add('hidden');
       }
       function renderUniversityDashboard(insight){
