@@ -52,7 +52,25 @@
       .priority button.secondary:hover { background:#ffe8aa; color:#714600; }
       .priority button.secondary:disabled { opacity:1; background:#f2e8cb; color:#786849; cursor:default; }
       .action-plan-error { grid-column:1 / -1; margin:0; padding:14px; border:1px solid #f0c6c9; border-radius:12px; background:#fff7f7; color:#9c3340; }
+      /* Keep account controls comfortably separated and make every survey response
+         option feel like one intentional part of the assessment interface. */
+      #confirmPasswordField { margin-top:18px; margin-bottom:22px; }
+      #startButton { margin-top:22px; }
+      .account-switch { margin-top:18px; }
+      .response-options { grid-column:1 / -1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:8px; padding-top:16px; border-top:1px solid #e0e9f5; }
+      .response-options button { min-height:76px!important; padding:14px 15px!important; border:1px solid #c7d8ef; border-radius:13px; background:#f8fbff; color:#285aa9!important; font-weight:800; box-shadow:0 4px 12px #2546790a; text-align:left; }
+      .response-options button:hover,.response-options button[aria-pressed="true"] { background:#eaf3ff; border-color:#2f70da; }
+      .response-options button small { margin-top:5px; color:#637796; }
+      .scope-options { margin-top:14px; }
+      .scope-options button { width:100%; padding:12px 14px; border-radius:12px; background:#f8fbff; border-color:#c7d8ef; color:#405d88; text-align:left; }
+      .scope-options button[aria-pressed="true"] { background:#e7f1ff; border-color:#3475d7; color:#245bbb; }
+      .dimension-comment { margin-top:24px; padding:20px; border:1px solid #cbdcf2; border-radius:16px; background:linear-gradient(145deg,#f5f9ff,#fbfdff); box-shadow:0 10px 25px #2546790a; }
+      .dimension-comment label { display:block; color:#244d92; font-size:15px; line-height:1.4; }
+      .dimension-comment textarea { display:block; width:100%; max-width:none; margin:12px 0 0; padding:13px 14px; border:1px solid #bdcfe8; border-radius:12px; background:#fff; color:var(--ink); font:inherit; line-height:1.5; }
+      .dimension-comment textarea:focus { outline:3px solid #8dbbff66; border-color:#3978d5; }
+      .dimension-comment p { margin:9px 0 0; color:#637795; }
       @media (max-width:700px) { .university-subdimensions { grid-template-columns:1fr; } }
+      @media (max-width:760px) { .response-options { grid-column:span 2; grid-template-columns:1fr; } #confirmPasswordField { margin-bottom:20px; } }
     </style>
   </head>
   <body>
