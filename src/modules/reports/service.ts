@@ -10,13 +10,21 @@ const actions: Record<string, string> = {
   ai_governance_access: "Publish a simple, equitable process for requesting, reviewing, and accessing approved AI tools.",
   leadership_resourcing: "Assign accountable leadership and fund a time-bound AI readiness improvement plan.",
   monitoring_evaluation: "Establish regular measures for AI adoption, risk, outcomes, and stakeholder feedback.",
+  ai_risk_incident_response: "Publish a role-appropriate process to identify, report, triage, and learn from AI risks and incidents.",
+  adaptive_ai_policy_processes: "Set a recurring policy-review cycle that incorporates technology changes, evidence, and stakeholder feedback.",
+  ai_performance_monitoring: "Track performance, reliability, equity, risk, and stakeholder feedback for AI-supported services.",
   infrastructure_privacy_security: "Review approved AI tools against privacy, security, accessibility, and data-protection requirements.",
   data: "Document data ownership, quality, access controls, and permissible AI data flows.",
+  data_governance_management: "Document data ownership, quality checks, access controls, and permissible AI data flows.",
+  ai_system_reliability_maintenance: "Assign clear maintenance ownership, incident communication, and reliability review practices for AI systems.",
+  equitable_ai_access: "Review financial, technical, and accessibility barriers to approved AI tools and support.",
   ai_integration_use_cases: "Prioritize a small set of well-governed AI use cases with measurable learner or operational value.",
+  ai_workflow_integration: "Prioritize a small set of role-relevant AI workflows with safeguards and measurable value.",
   trust_transparency: "Explain where AI is used, what it does, its limitations, and how people can challenge decisions.",
   ethics_responsible_use: "Provide practical responsible-AI guidance and scenario-based ethics training for this role.",
   stakeholder_engagement_awareness: "Create recurring channels for stakeholder input, communication, and awareness-building.",
   ai_literacy: "Offer role-relevant AI literacy learning covering capabilities, limitations, risks, and verification.",
+  ai_enhanced_teaching_curriculum: "Align AI-supported teaching, learning, and curriculum work with pedagogical goals and clear guidance.",
   expertise_development: "Create advanced learning pathways, communities of practice, and applied support for AI expertise."
 };
 
@@ -39,9 +47,9 @@ export class ReportService {
     if (!session || session.status !== "completed") throw new Error("Complete the assessment before generating a report.");
     const score = session.scoreResult ?? await ScoringService.scoreSession(sessionId);
     const subScores = [...score.subDimensionScores].sort((a, b) => Number(a.score) - Number(b.score));
-    // These are response-anchor rules, not maturity cutoffs. A subdimension is
-    // a supported strength only at "Consistently applied" or higher; an
-    // opportunity is surfaced only at or below "Partially established".
+    // These are score-position rules, not validated maturity cutoffs. Metric
+    // anchors differ by question, so reports do not equate a score with a
+    // universal institutional-maturity claim.
     const weak = subScores.filter((item) => Number(item.score) <= 50).slice(0, 3);
     const strong = subScores.filter((item) => Number(item.score) >= 75).slice(-3).reverse();
     const focusText = weak.length ? `Focus first on ${weak.map((x) => x.subDimension.label).join(", ")}` : "No automatic priority was identified from the response anchors";

@@ -7,17 +7,18 @@ import { formatHeairContext, retrieveHeairContext } from "../knowledge/retrieval
 import { generatePublicAiReport } from "./anthropic.js";
 import { METHODOLOGY_VERSION, MINIMUM_PEER_RESPONDENTS, coverageFromCounts, isExcludedResponse, normalizeLikert, type AssessmentResponseValue } from "../../lib/assessment-methodology.js";
 import { ScoringService } from "../scoring/service.js";
+import { PROJECT_HEARMES_SUB_DIMENSIONS } from "../../lib/instrument.js";
 
 const input = z.object({
   role: z.string().min(1).max(80),
   overallScore: z.number().min(0).max(100),
-  scores: z.array(z.object({ subDimension: z.string().min(1).max(100), dimension: z.string().min(1).max(100), score: z.number().min(0).max(100) })).min(4).max(12)
+  scores: z.array(z.object({ subDimension: z.string().min(1).max(100), dimension: z.string().min(1).max(100), score: z.number().min(0).max(100) })).min(4).max(17)
 });
 
 const chatInput = z.object({
   role: z.string().min(1).max(80).optional(),
   overallScore: z.number().min(0).max(100).optional(),
-  scores: z.array(z.object({ subDimension: z.string().min(1).max(100), dimension: z.string().min(1).max(100), score: z.number().min(0).max(100) })).min(1).max(12).optional(),
+  scores: z.array(z.object({ subDimension: z.string().min(1).max(100), dimension: z.string().min(1).max(100), score: z.number().min(0).max(100) })).min(1).max(17).optional(),
   messages: z.array(z.discriminatedUnion("role", [
     z.object({ role: z.literal("user"), content: z.string().min(1).max(1200) }),
     z.object({ role: z.literal("assistant"), content: z.string().min(1).max(3000) })
@@ -57,19 +58,14 @@ const conversationTitle = z.object({ title: z.string().trim().min(1).max(180) })
 const saveResultInput = z.object({
   role: assessmentRole,
   overallScore: z.number().min(0).max(100).optional(),
-  scores: z.array(z.object({ subDimension: z.string().min(1).max(100), dimension: z.string().min(1).max(100), score: z.number().min(0).max(100) })).min(0).max(12),
-  responses: z.array(z.object({ subDimension: z.string().min(1).max(100), value: z.union([z.number(), z.string(), z.object({ value: z.union([z.number(), z.string()]), scope: z.literal("department_or_team").optional() })]) })).min(1).max(12).optional(),
+  scores: z.array(z.object({ subDimension: z.string().min(1).max(100), dimension: z.string().min(1).max(100), score: z.number().min(0).max(100) })).min(0).max(17),
+  responses: z.array(z.object({ subDimension: z.string().min(1).max(100), value: z.union([z.number(), z.string(), z.object({ value: z.union([z.number(), z.string()]), scope: z.literal("department_or_team").optional() })]) })).min(1).max(17).optional(),
   dimensionComments: z.array(z.object({ dimensionId: z.string().min(1).max(80), text: z.string().trim().max(1200) })).max(4).optional(),
   submissionId: z.string().uuid().optional(),
   report: reportInput
 });
 
-const subDimensionIds: Record<string, string> = {
-  "Policy & Compliance": "policy_compliance", "AI Governance & Access": "ai_governance_access", "Leadership & Resourcing": "leadership_resourcing", "Monitoring & Evaluation": "monitoring_evaluation",
-  "Infrastructure, Privacy & Security": "infrastructure_privacy_security", "Data": "data", "AI Integration & Use Cases": "ai_integration_use_cases",
-  "Trust & Transparency": "trust_transparency", "Ethics & Responsible Use": "ethics_responsible_use", "Stakeholder Engagement & Awareness": "stakeholder_engagement_awareness",
-  "AI Literacy": "ai_literacy", "Expertise Development": "expertise_development"
-};
+const subDimensionIds: Record<string, string> = Object.fromEntries(PROJECT_HEARMES_SUB_DIMENSIONS.map((item) => [item.label, item.id]));
 const dimensionIds: Record<string, string> = { "Governance & Strategy": "governance_strategy", "Systems & Infrastructure": "systems_infrastructure", Culture: "culture", Education: "education" };
 const activeAssessmentRoles = ["student", "faculty", "executive_leadership", "administrative_staff", "programming_staff", "finance_staff"] as const;
 const minimumCohortRespondents = MINIMUM_PEER_RESPONDENTS;

@@ -1,16 +1,17 @@
 import { PrismaClient, StakeholderRole } from "@prisma/client";
 import { HEAIR_DOCUMENT_ID, HEAIR_KNOWLEDGE_CHUNKS, HEAIR_SOURCE_CITATION, HEAIR_SOURCE_TITLE } from "../src/modules/knowledge/heair-framework.js";
+import { PROJECT_HEARMES_DIMENSIONS, PROJECT_HEARMES_QUESTION_ROWS, PROJECT_HEARMES_SUB_DIMENSIONS } from "../src/lib/instrument.js";
 
 const prisma = new PrismaClient();
 
-const dimensions = [
+const legacyDimensions = [
   ["governance_strategy", "Governance & Strategy", "Policies, governance, leadership, and evaluation for AI.", 1],
   ["systems_infrastructure", "Systems & Infrastructure", "Secure, capable systems, data, and AI use cases.", 2],
   ["culture", "Culture", "Trust, ethics, transparency, and stakeholder engagement.", 3],
   ["education", "Education", "AI literacy and expertise development.", 4],
 ] as const;
 
-const subDimensions = [
+const legacySubDimensions = [
   ["policy_compliance", "governance_strategy", "Policy & Compliance", "Awareness of and adherence to AI policy.", 1],
   ["ai_governance_access", "governance_strategy", "AI Governance & Access", "Clear, equitable governance and access pathways.", 2],
   ["leadership_resourcing", "governance_strategy", "Leadership & Resourcing", "Leadership commitment and resources for AI.", 3],
@@ -28,7 +29,7 @@ const subDimensions = [
 type AssessmentRole = "student" | "faculty" | "executive_leadership" | "administrative_staff" | "programming_staff" | "finance_staff";
 const defaultLegacyInstitution = "University of North Carolina at Charlotte";
 
-const prompts: Record<AssessmentRole, string[]> = {
+const legacyPrompts: Record<AssessmentRole, string[]> = {
   student: [
     "How familiar are you with all AI policies that apply to you at your institution?", "During your time at your institution, how aware are you of AI policies and changes to those policies?", "How comfortable are you advocating on AI-related topics to your institutional leadership?", "How often do you have the opportunity to evaluate or report problems with institutional AI systems?", "When using AI tools for school-related tasks, how concerned are you with the privacy and security of your data?", "How confident are you that your personal and academic data are appropriately managed and protected when using institutional AI tools?", "To what extent has the integration of AI improved your academic workflows and supported your coursework?", "How confident are you that AI technologies used by your institution are implemented transparently and are trustworthy?", "How confident are you in your ability to recognize what is acceptable AI use and prohibited AI use within your institution?", "How often are students involved in institutional discussions or decisions about AI policy or AI use?", "How would you rate your understanding of how AI tools work and their limits?", "What opportunities has your institution provided to help you develop practical AI skills for academic or professional use?"
   ],
@@ -48,6 +49,9 @@ const prompts: Record<AssessmentRole, string[]> = {
     "How clearly do institutional AI policies address financial controls, procurement, contracts, and approval responsibilities in your area?", "How consistently are you informed when AI policy, vendor, or regulatory changes affect financial operations?", "How effectively does executive leadership resource responsible AI adoption while considering cost, risk, and return on investment?", "How routinely are AI-enabled financial processes reviewed for accuracy, cost, compliance, and unintended impacts?", "How confident are you that AI tools used with financial, payroll, vendor, or student-account information meet institutional privacy and security requirements?", "How effectively are financial and operational data governed, validated, and protected before they are used by AI systems?", "To what extent have approved AI tools improved forecasting, budgeting, purchasing, reporting, or other finance workflows?", "How transparent is the institution about how AI-supported financial decisions, recommendations, or risk signals are generated and used?", "How prepared are you to identify fairness, accountability, accessibility, and bias concerns in AI-supported financial processes?", "How often are finance staff included in institutional planning, governance, and communication about AI implementation?", "How confident are you in understanding the capabilities, limitations, and risks of AI tools relevant to finance work?", "What opportunities are available for you to build practical AI, data, procurement, or financial-governance expertise?"
   ]
 };
+
+const dimensions = PROJECT_HEARMES_DIMENSIONS.map(({ id, label, description, sortOrder }) => [id, label, description, sortOrder] as const);
+const subDimensions = PROJECT_HEARMES_SUB_DIMENSIONS.map(({ id, dimensionId, label, description, sortOrder }) => [id, dimensionId, label, description, sortOrder] as const);
 
 async function main() {
   const legacyInstitution = await prisma.institution.upsert({ where: { name: defaultLegacyInstitution }, update: {}, create: { name: defaultLegacyInstitution } });
@@ -75,12 +79,13 @@ async function main() {
   // Unreferenced base questions can safely be replaced on future deployments.
   await prisma.question.updateMany({ where: { sessionScoped: false, active: true, responses: { some: {} } }, data: { active: false } });
   await prisma.question.deleteMany({ where: { sessionScoped: false, responses: { none: {} }, triggerRules: { none: {} }, followUpFor: { none: {} } } });
-  for (const role of Object.keys(prompts) as AssessmentRole[]) {
-    for (let i = 0; i < subDimensions.length; i++) {
-      await prisma.question.create({ data: { role: role as StakeholderRole, subDimensionId: subDimensions[i][0], prompt: prompts[role][i], questionType: "likert_5", weight: 1, isAdaptiveSeed: i === 0 || i === 8 } });
+  for (const role of Object.keys(PROJECT_HEARMES_QUESTION_ROWS) as AssessmentRole[]) {
+    for (let i = 0; i < PROJECT_HEARMES_QUESTION_ROWS[role].length; i++) {
+      const question = PROJECT_HEARMES_QUESTION_ROWS[role][i];
+      await prisma.question.create({ data: { role: role as StakeholderRole, subDimensionId: question.subDimensionId, prompt: question.prompt, helpText: question.helpText, metricType: question.metricType, questionType: "likert_5", weight: 1, isAdaptiveSeed: i === 0 || i === 12 } });
     }
   }
-  console.log("Seeded HEAIR taxonomy, 72 role-adaptive base questions, and source-grounded HEAIR retrieval chunks.");
+  console.log("Seeded Project HEARMES taxonomy, 102 role-adaptive draft-instrument questions, and source-grounded retrieval chunks.");
 }
 
 main().finally(() => prisma.$disconnect());

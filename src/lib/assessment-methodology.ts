@@ -5,16 +5,16 @@
  * model here. Until the research team approves thresholds, callers should use
  * neutral result language and the response-coverage descriptor below.
  */
-export const METHODOLOGY_VERSION = "heair-v1-provisional";
+export const METHODOLOGY_VERSION = "project-hearmes-v2-draft";
 export const METHODOLOGY_STATUS = "requires_research_team_approval" as const;
 export const MINIMUM_PEER_RESPONDENTS = 5;
 
 export const LIKERT_ANCHORS = [
-  { value: 1, label: "Not established", detail: "Not yet in place" },
-  { value: 2, label: "Informal or rarely applied", detail: "Inconsistent or ad hoc" },
-  { value: 3, label: "Partially established", detail: "Developing in some areas" },
-  { value: 4, label: "Consistently applied", detail: "Working well in regular practice" },
-  { value: 5, label: "Institutionally established", detail: "A clear, sustained strength" }
+  { value: 1, label: "Lowest metric response", detail: "Question-specific anchor" },
+  { value: 2, label: "Lower metric response", detail: "Question-specific anchor" },
+  { value: 3, label: "Midpoint metric response", detail: "Question-specific anchor" },
+  { value: 4, label: "Higher metric response", detail: "Question-specific anchor" },
+  { value: 5, label: "Highest metric response", detail: "Question-specific anchor" }
 ] as const;
 
 export const EXCLUDED_RESPONSE_VALUES = ["not_sure", "not_applicable"] as const;

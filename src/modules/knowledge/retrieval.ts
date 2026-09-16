@@ -1,17 +1,27 @@
 import { prisma } from "../../lib/prisma.js";
 import { HEAIR_SOURCE_TITLE } from "./heair-framework.js";
+import { PROJECT_HEARMES_SUB_DIMENSIONS } from "../../lib/instrument.js";
 
 type Score = { subDimension: string; dimension: string; score: number };
 type ChunkMetadata = { kind?: string; dimensionId?: string; subDimensionId?: string; roles?: string[] };
 
-const subDimensionIds: Record<string, string> = {
+const legacySubDimensionIds: Record<string, string> = {
   "Policy & Compliance": "policy_compliance", "AI Governance & Access": "ai_governance_access", "Leadership & Resourcing": "leadership_resourcing", "Monitoring & Evaluation": "monitoring_evaluation",
   "Infrastructure, Privacy & Security": "infrastructure_privacy_security", Data: "data", "AI Integration & Use Cases": "ai_integration_use_cases",
   "Trust & Transparency": "trust_transparency", "Ethics & Responsible Use": "ethics_responsible_use", "Stakeholder Engagement & Awareness": "stakeholder_engagement_awareness",
   "AI Literacy": "ai_literacy", "Expertise Development": "expertise_development"
 };
+const subDimensionIds: Record<string, string> = Object.fromEntries(PROJECT_HEARMES_SUB_DIMENSIONS.map((item) => [item.label, item.id]));
+const retrievalSubDimensionIds: Record<string, string> = {
+  ai_risk_incident_response: "monitoring_evaluation", adaptive_ai_policy_processes: "policy_compliance", ai_performance_monitoring: "monitoring_evaluation",
+  ai_system_reliability_maintenance: "infrastructure_privacy_security", data_governance_management: "data", equitable_ai_access: "ai_governance_access",
+  ai_workflow_integration: "ai_integration_use_cases", ai_enhanced_teaching_curriculum: "ai_integration_use_cases"
+};
 const dimensionIds: Record<string, string> = { "Governance & Strategy": "governance_strategy", "Systems & Infrastructure": "systems_infrastructure", Culture: "culture", Education: "education" };
-const subDimensionLabels: Record<string, string> = Object.fromEntries(Object.entries(subDimensionIds).map(([label, id]) => [id, label]));
+const subDimensionLabels: Record<string, string> = {
+  ...Object.fromEntries(Object.entries(legacySubDimensionIds).map(([label, id]) => [id, label])),
+  ...Object.fromEntries(Object.entries(subDimensionIds).map(([label, id]) => [id, label]))
+};
 const ignoredQueryTerms = new Set(["about", "after", "against", "could", "first", "focus", "from", "have", "help", "into", "more", "overall", "should", "score", "scores", "their", "there", "these", "this", "what", "when", "which", "with", "would", "your"]);
 
 function queryTerms(question: string) {
@@ -29,7 +39,7 @@ export async function retrieveHeairContext(role: string, scores: Score[], limit 
       include: { document: { select: { sourceTitle: true, sourceUrlOrCitation: true, publisher: true, publishedAt: true, sourceType: true } } }
     });
     const weakest = [...scores].sort((left, right) => left.score - right.score).slice(0, 3);
-    const weakSubDimensions = new Set(weakest.map((score) => subDimensionIds[score.subDimension]).filter(Boolean));
+    const weakSubDimensions = new Set(weakest.map((score) => subDimensionIds[score.subDimension]).map((id) => retrievalSubDimensionIds[id] || id).filter(Boolean));
     const weakDimensions = new Set(weakest.map((score) => dimensionIds[score.dimension]).filter(Boolean));
     const terms = queryTerms(question);
     const roleTerms = role === "executive_leadership" ? ["executive leadership", "administrators", "leadership"]

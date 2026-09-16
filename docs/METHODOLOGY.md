@@ -1,17 +1,17 @@
 # Project HEARMES assessment methodology
 
-Current version: `project-hearmes-v1-provisional`
+Current version: `project-hearmes-v2-draft`
 
 Status: requires Project HEARMES research-team approval before it can be described as a validated maturity model.
 Methodology owner: Project HEARMES research team.
 
 ## Current calculation
 
-Each scored Likert response is normalized from 1–5 to 0–100: 0, 25, 50, 75, and 100. Valid responses are weighted within a sub-dimension, sub-dimensions are averaged within a dimension, and available dimensions are averaged into the overall result. The implementation is in `src/lib/assessment-methodology.ts` and `src/modules/scoring/service.ts`.
+Each scored response is normalized from 1–5 to 0–100: 0, 25, 50, 75, and 100. Every question carries its own declared metric type: awareness, frequency, ability/confidence, likelihood, importance, or agreement. Valid responses are weighted within a sub-dimension, sub-dimensions are averaged within a dimension, and available dimensions are averaged into the overall result. The implementation is in `src/lib/instrument.ts`, `src/lib/assessment-methodology.ts`, and `src/modules/scoring/service.ts`.
 
 `Not sure / Not enough information`, `Not applicable to my role`, and unanswered items never become zero. They are excluded from the score denominator. The report instead displays response coverage, which is a descriptive account of how many responses contributed to the result. It is not a statistical confidence interval.
 
-A sub-dimension is presented as a supported strength only when its average response reaches the **Consistently applied** anchor (75/100). An improvement opportunity is presented only when its average is at or below **Partially established** (50/100). These interpretation rules derive from the questionnaire anchors; they are not approved institutional maturity levels.
+A sub-dimension is presented as a relative strength at 75/100 or higher and an improvement opportunity at 50/100 or lower. Because response anchors differ by metric type, these are score-position rules, not universal institutional-maturity claims. They remain subject to research-team approval.
 
 ## Interpretation
 

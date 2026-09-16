@@ -6,6 +6,7 @@ import { currentUser } from "../../lib/auth.js";
 import { fail } from "../../lib/errors.js";
 import { ScoringService } from "../scoring/service.js";
 import { EXCLUDED_RESPONSE_VALUES, METHODOLOGY_VERSION } from "../../lib/assessment-methodology.js";
+import { projectHearmesQuestionsForRole } from "../../lib/instrument.js";
 
 const responseSchema = z.object({ questionId: z.string().uuid(), value: z.union([z.number(), z.string(), z.boolean(), z.record(z.unknown()), z.array(z.unknown())]) });
 const startSchema = z.object({ role: z.enum(["student", "faculty", "executive_leadership", "administrative_staff", "programming_staff", "finance_staff"]).optional() });
@@ -21,6 +22,14 @@ function validValue(type: QuestionType, value: unknown) {
 }
 
 export async function assessmentRoutes(app: FastifyInstance) {
+  app.get("/public/instrument/:role", async (request, reply) => {
+    const roleSchema = z.enum(["student", "faculty", "executive_leadership", "administrative_staff", "programming_staff", "finance_staff"]);
+    const parsed = roleSchema.safeParse((request.params as { role?: string }).role);
+    if (!parsed.success) return fail(reply, 400, "Unknown stakeholder role.");
+    const questions = projectHearmesQuestionsForRole(parsed.data);
+    return { role: parsed.data, questionCount: questions.length, questions };
+  });
+
   app.post("/assessments", async (request, reply) => {
     const user = await currentUser(request); if (!user?.role) return fail(reply, 400, "Add a stakeholder role before starting an assessment.");
     const body = startSchema.parse(request.body ?? {});

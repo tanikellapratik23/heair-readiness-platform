@@ -4,6 +4,7 @@ import { z } from "zod";
 import { currentUser } from "../../lib/auth.js";
 import { fail } from "../../lib/errors.js";
 import { prisma } from "../../lib/prisma.js";
+import { PROJECT_HEARMES_SUB_DIMENSIONS } from "../../lib/instrument.js";
 
 const completedAssessment = { status: "completed" as const, scoreResult: { isNot: null } };
 const activeRoles = ["student", "faculty", "executive_leadership", "administrative_staff", "programming_staff", "finance_staff"] as const;
@@ -13,20 +14,7 @@ const dimensionColumns = [
   ["culture", "culture_score"],
   ["education", "education_score"]
 ] as const;
-const subDimensionColumns = [
-  ["policy_compliance", "policy_compliance_score"],
-  ["ai_governance_access", "ai_governance_access_score"],
-  ["leadership_resourcing", "leadership_resourcing_score"],
-  ["monitoring_evaluation", "monitoring_evaluation_score"],
-  ["infrastructure_privacy_security", "infrastructure_privacy_security_score"],
-  ["data", "data_score"],
-  ["ai_integration_use_cases", "ai_integration_use_cases_score"],
-  ["trust_transparency", "trust_transparency_score"],
-  ["ethics_responsible_use", "ethics_responsible_use_score"],
-  ["stakeholder_engagement_awareness", "stakeholder_engagement_awareness_score"],
-  ["ai_literacy", "ai_literacy_score"],
-  ["expertise_development", "expertise_development_score"]
-] as const;
+const subDimensionColumns = PROJECT_HEARMES_SUB_DIMENSIONS.map((item) => [item.id, `${item.id}_score`] as const);
 const exportQuery = z.object({ institution_id: z.string().uuid().optional() });
 
 async function administrator(request: FastifyRequest, reply: FastifyReply) {

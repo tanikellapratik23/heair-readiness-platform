@@ -153,6 +153,7 @@ model Question {
   questionType QuestionType @default(likert_5)
   options Json?
   scoringKey Json?
+  metricType String? @db.VarChar(40)
   isAdaptiveSeed Boolean @default(false)
   weight Decimal @default(1) @db.Decimal(8,2)
   active Boolean @default(true)
@@ -182,7 +183,7 @@ model AssessmentSession {
   roleAtTime StakeholderRole
   departmentIdAtTime String? @db.Uuid
   unitNameAtTime String?
-  methodologyVersion String @default("heair-v1-provisional")
+  methodologyVersion String @default("project-hearmes-v2-draft")
   clientSubmissionId String? @unique @db.Uuid
   status SessionStatus @default(in_progress)
   startedAt DateTime @default(now())
@@ -228,7 +229,7 @@ model ScoreResult {
   id String @id @default(uuid()) @db.Uuid
   sessionId String @unique @db.Uuid
   overallScore Decimal @db.Decimal(5,2)
-  methodologyVersion String @default("heair-v1-provisional")
+  methodologyVersion String @default("project-hearmes-v2-draft")
   scoredResponseCount Int @default(0)
   excludedResponseCount Int @default(0)
   responseCoveragePercent Int @default(0)
@@ -342,7 +343,7 @@ model ChatConversation {
   userId String @db.Uuid
   assessmentSessionId String? @db.Uuid
   title String @db.VarChar(180)
-  methodologyVersion String @default("heair-v1-provisional")
+  methodologyVersion String @default("project-hearmes-v2-draft")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
