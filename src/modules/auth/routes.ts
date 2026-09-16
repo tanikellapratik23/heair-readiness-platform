@@ -64,8 +64,8 @@ async function provisionConfiguredAdmin(email: string, password: string) {
   const passwordHash = await bcrypt.hash(password, 12);
   return prisma.user.upsert({
     where: { email: email.trim().toLocaleLowerCase() },
-    update: { fullName: "HEAIR Administrator", passwordHash, systemRole: SystemRole.admin },
-    create: { email: email.trim().toLocaleLowerCase(), fullName: "HEAIR Administrator", passwordHash, systemRole: SystemRole.admin },
+    update: { fullName: "Project HEARMES Administrator", passwordHash, systemRole: SystemRole.admin },
+    create: { email: email.trim().toLocaleLowerCase(), fullName: "Project HEARMES Administrator", passwordHash, systemRole: SystemRole.admin },
     include: { institution: { select: { id: true, name: true } }, stakeholderRoles: { select: { role: true, approvedAt: true, verificationPending: true } } }
   });
 }

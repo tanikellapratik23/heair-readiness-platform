@@ -223,7 +223,7 @@ export async function adminRoutes(app: FastifyInstance) {
     await prisma.exportAuditLog.create({ data: { userId: admin.id, exportType: "administrator_assessment_csv", scope: { institutionId: query.data.institution_id ?? null, completedAssessmentCount: sessions.length, includesIndividualData: true } } });
     return reply
       .type("text/csv; charset=utf-8")
-      .header("Content-Disposition", 'attachment; filename="heair-assessment-export.csv"')
+      .header("Content-Disposition", 'attachment; filename="project-hearmes-assessment-export.csv"')
       .send(csv);
   });
 }

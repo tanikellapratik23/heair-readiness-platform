@@ -17,7 +17,7 @@ app.setErrorHandler((error, _request, reply) => {
   if (error instanceof ZodError) return reply.code(400).send({ error: "Invalid request", details: error.flatten() });
   app.log.error(error); return reply.code(500).send({ error: "Internal server error" });
 });
-app.get("/health", async () => ({ status: "ok", service: "heair-readiness-platform" }));
+app.get("/health", async () => ({ status: "ok", service: "project-hearmes" }));
 await app.register(authRoutes);
 await app.register(assessmentRoutes);
 await app.register(reportRoutes);

@@ -5,7 +5,7 @@
  * cite and use the framework without publishing the source PDF itself.
  */
 export const HEAIR_DOCUMENT_ID = "ab0d1f27-7155-4eea-8e80-6ddc4b450001";
-export const HEAIR_SOURCE_TITLE = "A Multistakeholder Approach to Higher Education AI Readiness (HEAIR)";
+export const HEAIR_SOURCE_TITLE = "Project HEARMES Research Foundation";
 export const HEAIR_SOURCE_CITATION = "Tadimalla & Maher (2026), ASEE";
 
 type HeairChunk = {

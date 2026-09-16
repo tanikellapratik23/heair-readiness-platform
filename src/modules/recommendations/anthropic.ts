@@ -1,6 +1,6 @@
 import { formatHeairContext, retrieveHeairContext } from "../knowledge/retrieval.js";
 
-const fallback = "AI enhancement is not configured. Your report uses the HEAIR scoring and recommendations engine.";
+const fallback = "AI enhancement is not configured. Your report uses the Project HEARMES scoring and recommendations engine.";
 
 type Score = { subDimension: string; score: number };
 export type PublicReadinessScore = Score & { dimension: string };
@@ -35,7 +35,7 @@ export async function generateAiSummary(role: string, overallScore: number, weak
     body: JSON.stringify({
       model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
       max_tokens: 300,
-      system: "You are a higher-education AI readiness advisor. The retrieved HEAIR framework context below is your primary source. Give a concise, practical, evidence-aware report that follows its role-specific guidance. Do not invent citations, institutional facts, or policies. Do not quote the source at length.\n\n" + heairContext,
+      system: "You are a higher-education AI readiness advisor. The retrieved Project HEARMES research context below is your primary source. Give a concise, practical, evidence-aware report that follows its role-specific guidance. Do not invent citations, institutional facts, or policies. Do not quote the source at length.\n\n" + heairContext,
       messages: [{ role: "user", content: JSON.stringify({ role, overallScore, weakest, strongest }) }]
     })
   });
@@ -54,7 +54,7 @@ export async function generatePublicAiReport(role: string, overallScore: number,
     body: JSON.stringify({
       model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
       max_tokens: 700,
-      system: "You are a practical higher-education AI readiness advisor. The retrieved HEAIR framework context below is the primary source for your advice. Combine it with only the supplied score names and values; do not invent institutional facts, policies, citations, tools, or data. Return raw JSON only: no Markdown, code fences, citations, or introductory text. Keep every description to 24 words or fewer and every action to 16 words or fewer. Be specific, encouraging, and role-aware. Do not quote the source at length.\n\n" + heairContext,
+      system: "You are a practical higher-education AI readiness advisor. The retrieved Project HEARMES research context below is the primary source for your advice. Combine it with only the supplied score names and values; do not invent institutional facts, policies, citations, tools, or data. Return raw JSON only: no Markdown, code fences, citations, or introductory text. Keep every description to 24 words or fewer and every action to 16 words or fewer. Be specific, encouraging, and role-aware. Do not quote the source at length.\n\n" + heairContext,
       messages: [{ role: "user", content: JSON.stringify({
         role, overallScore, scores,
         requiredShape: {

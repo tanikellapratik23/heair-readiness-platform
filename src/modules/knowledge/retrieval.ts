@@ -58,7 +58,7 @@ export async function retrieveHeairContext(role: string, scores: Score[], limit 
       publisher: chunk.document.publisher,
       publishedAt: chunk.document.publishedAt?.toISOString() ?? null,
       sourceType: chunk.document.sourceType,
-      section: ((chunk.metadata as ChunkMetadata | null)?.subDimensionId && subDimensionLabels[(chunk.metadata as ChunkMetadata).subDimensionId!]) || "HEAIR framework",
+      section: ((chunk.metadata as ChunkMetadata | null)?.subDimensionId && subDimensionLabels[(chunk.metadata as ChunkMetadata).subDimensionId!]) || "Project HEARMES research foundation",
       text: chunk.chunkText
     }));
   } catch {
@@ -68,6 +68,6 @@ export async function retrieveHeairContext(role: string, scores: Score[], limit 
 }
 
 export function formatHeairContext(context: Awaited<ReturnType<typeof retrieveHeairContext>>) {
-  if (!context.length) return "No HEAIR source chunks were retrieved. Use only the supplied score profile and avoid unsupported claims.";
-  return context.map((chunk, index) => `[HEAIR source ${index + 1}: ${chunk.sourceTitle}${chunk.citation ? ` — ${chunk.citation}` : ""}]\n${chunk.text}`).join("\n\n");
+  if (!context.length) return "No Project HEARMES research source chunks were retrieved. Use only the supplied score profile and avoid unsupported claims.";
+  return context.map((chunk, index) => `[Project HEARMES source ${index + 1}: ${chunk.sourceTitle}${chunk.citation ? ` — ${chunk.citation}` : ""}]\n${chunk.text.replaceAll("HEAIR", "Project HEARMES")}`).join("\n\n");
 }

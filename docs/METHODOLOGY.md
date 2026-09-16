@@ -1,9 +1,9 @@
-# HEAIR assessment methodology
+# Project HEARMES assessment methodology
 
-Current version: `heair-v1-provisional`
+Current version: `project-hearmes-v1-provisional`
 
-Status: requires HEAIR research-team approval before it can be described as a validated maturity model.
-Methodology owner: HEAIR research team.
+Status: requires Project HEARMES research-team approval before it can be described as a validated maturity model.
+Methodology owner: Project HEARMES research team.
 
 ## Current calculation
 
@@ -21,7 +21,7 @@ Until the research team approves score cutoffs with an owner, citation, and appr
 
 | Decision | Current treatment | Required approval evidence |
 | --- | --- | --- |
-| Score cutoffs / maturity labels | Not asserted as validated | HEAIR research-team citation, owner, and approval date |
+| Score cutoffs / maturity labels | Not asserted as validated | Project HEARMES research-team citation, owner, and approval date |
 | Question weights | Equal weighting | Validated weighting rationale or psychometric evidence |
 | Peer-comparison privacy threshold | Minimum 5 distinct accounts per verified institution and role | Institutional privacy review |
 | Department/unit aggregation threshold | Same minimum of 5 distinct accounts | Institutional privacy review |
