@@ -70,7 +70,9 @@ Require `COMPLETED` and exit code `0:0`, then use a short **scheduled CPU job** 
 sbatch --partition=VERIFIED_CPU_PARTITION --cpus-per-task=1 --mem=2G --time=00:10:00 --output=/users/ptanike1/hearmes-logs/verify-%j.slurm.out --wrap='cd /users/ptanike1/hearmes-orion && npm run research:verify -- /users/ptanike1/hearmes-artifacts/smoke-v1.artifact.json "student privacy data"'
 ```
 
-Check the verification log: the synthetic privacy title, section and citation should appear. GPU, internet on compute nodes, and any particular module or account flags have not been verified.
+Check the verification log: the synthetic privacy title, section and citation should appear. A synthetic build and verification were completed on ORION's CPU partition with Node 22.20.0; a separate paper artifact was also built and loaded on ORION. GPU permissions and live deployment have not been verified. To evaluate a particular stakeholder, add `--role faculty`, `--role executive_leadership`, `--role administrative_staff`, `--role programming_staff`, or `--role finance_staff` after the query. Add `--show-passages` to inspect the actual retrieved text; the resulting logs contain document contents and must be protected. The default role is `student` for compatibility.
+
+Topic-term overlap and cosine similarity are primary ranking signals; role and low-score metadata are smaller tie-breakers. This is not a semantic model and exact or closely related wording still matters. Evaluate representative real questions per role against reviewed passages before deployment; one successful query does not establish quality. The earlier paper test placed the student policy table second; the updated local ranking puts it first, but the revised branch must be retested on ORION.
 
 ## Approved research documents and full batch — Mac, then ORION
 

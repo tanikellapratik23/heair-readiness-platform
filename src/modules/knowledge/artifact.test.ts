@@ -59,4 +59,29 @@ describe("optional research artifact", () => {
     expect(chunks[0].text.split(" ")).toHaveLength(450);
     expect(chunks[1].text.split(" ")[0]).toBe("word350");
   });
+  it("prioritizes the question topic over an unrelated role-tagged passage, even with weak-score metadata", async () => {
+    const { dir, input, output } = await fixture();
+    await writeFile(join(dir, "privacy.txt"), "Students should review academic integrity policies before submitting work.");
+    await writeFile(join(dir, "training.txt"), "Students can attend expertise development workshops and mentoring sessions.");
+    await writeFile(input, JSON.stringify({ documents: [
+      { path: "privacy.txt", title: "Academic policy", sourceType: "heair_paper", roles: ["student"] },
+      { path: "training.txt", title: "Expertise development", sourceType: "heair_paper", roles: ["student"], subDimensionId: "expertise_development" }
+    ] }));
+    await buildArtifact(input, output);
+    const result = retrieveArtifactContext(loadArtifact(output), "student", [{ subDimension: "Expertise Development", dimension: "Education", score: 0 }], 1, "student academic integrity policy");
+    expect(result[0].sourceTitle).toBe("Academic policy");
+  });
+  it("uses legacy stakeholder aliases for the corresponding current roles", async () => {
+    const { dir, input, output } = await fixture();
+    await writeFile(join(dir, "privacy.txt"), "Synthetic data anonymization supports secure research data.");
+    await writeFile(join(dir, "training.txt"), "Synthetic data anonymization supports secure research data.");
+    await writeFile(input, JSON.stringify({ documents: [
+      { path: "privacy.txt", title: "IT guidance", sourceType: "heair_paper", roles: ["it_staff"] },
+      { path: "training.txt", title: "Faculty guidance", sourceType: "heair_paper", roles: ["faculty"] }
+    ] }));
+    await buildArtifact(input, output);
+    const artifact = loadArtifact(output);
+    expect(retrieveArtifactContext(artifact, "programming_staff", [], 1, "synthetic data anonymization")[0].sourceTitle).toBe("IT guidance");
+    expect(retrieveArtifactContext(artifact, "faculty", [], 1, "synthetic data anonymization")[0].sourceTitle).toBe("Faculty guidance");
+  });
 });
