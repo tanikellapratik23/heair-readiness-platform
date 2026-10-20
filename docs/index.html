@@ -71,6 +71,21 @@
       .dimension-comment p { margin:9px 0 0; color:#637795; }
       @media (max-width:700px) { .university-subdimensions { grid-template-columns:1fr; } }
       @media (max-width:760px) { .response-options { grid-column:span 2; grid-template-columns:1fr; } #confirmPasswordField { margin-bottom:20px; } }
+      /* Conversational coach refinements. Kept here so they cleanly override the
+         compact legacy chat rules without changing the established visual system. */
+      .chat-message { white-space:normal; }
+      .chat-message p { margin:7px 0 0; color:inherit; }
+      .chat-message p:first-child { margin-top:4px; }
+      .chat-message ul,.chat-message ol { margin:8px 0 0; padding-left:20px; }
+      .chat-message li+li { margin-top:4px; }
+      .chat-message.thinking { width:fit-content; min-width:106px; color:#61738f; font-style:normal; }
+      .coach-typing { display:flex; align-items:center; gap:7px; min-height:25px; margin-top:5px; }
+      .coach-typing-orbs { display:flex; align-items:center; gap:5px; }
+      .coach-typing-orbs i { display:block; width:8px; height:8px; border-radius:50%; background:linear-gradient(145deg,#3279e8,#5fa2ed); box-shadow:0 2px 6px #2d6dd74d; animation:coach-breathe 1.15s ease-in-out infinite; }
+      .coach-typing-orbs i:nth-child(2) { animation-delay:.16s; }
+      .coach-typing-orbs i:nth-child(3) { animation-delay:.32s; }
+      .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+      @keyframes coach-breathe { 0%,100% { transform:scale(.72); opacity:.42; } 50% { transform:scale(1.3); opacity:1; } }
     </style>
   </head>
   <body>
@@ -212,7 +227,7 @@
     </main>
     <section id="scoreChat" class="chat-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="chatTitle">
       <div class="chat-window">
-        <header class="chat-header"><div><span class="eyebrow">Your AI readiness coach</span><h2 id="chatTitle">Let’s make your score useful.</h2><p>Ask about a result, a priority, or a realistic next step.</p></div><div class="chat-header-actions"><button type="button" class="secondary chat-new" onclick="loadConversationList()">History</button><button type="button" class="secondary chat-new" onclick="newScoreConversation()">New chat</button><button class="chat-close" type="button" onclick="closeScoreChat()" aria-label="Close score chat">×</button></div></header>
+        <header class="chat-header"><div><span class="eyebrow">Your AI readiness coach</span><h2 id="chatTitle">Let’s make your score useful.</h2><p>Ask about a result, a priority, or a realistic next step.</p></div><div class="chat-header-actions"><button type="button" class="secondary chat-new" onclick="loadConversationList()">History</button><button type="button" class="secondary chat-new" onclick="newScoreConversation()">New conversation</button><button class="chat-close" type="button" onclick="closeScoreChat()" aria-label="Close score chat">×</button></div></header>
         <div id="chatBody" class="chat-body"><div class="chat-intro">Your coach uses your role, score profile, and retrieved Project HEARMES research guidance to turn this report into practical next steps.</div><details class="chat-transparency"><summary>How this AI coach uses your information</summary><p>It uses this saved assessment, your selected role, university, optional unit, and relevant Project HEARMES source material. It does not browse the internet in this experience. Conversations are saved to your account until you delete them or an approved institutional retention policy changes. Recommendations can be wrong and should be reviewed by institutional stakeholders.</p></details><div id="chatConversationList" class="chat-conversation-list hidden"></div><div class="suggestions"><button class="suggestion" onclick="useSuggestion('What should I focus on first this month?')">What should I focus on first?</button><button class="suggestion" onclick="useSuggestion('How can I improve my lowest score in a practical way?')">How can I improve my lowest score?</button><button class="suggestion" onclick="useSuggestion('Give me a simple 30-day improvement plan.')">Give me a 30-day plan</button><button class="suggestion" onclick="useSuggestion('What does my overall score mean for my role?')">What does my score mean?</button></div><div id="chatMessages"></div></div>
         <div class="chat-composer"><textarea id="chatInput" rows="1" maxlength="1200" placeholder="Ask about your score…"></textarea><button id="chatSend" onclick="sendScoreChat()">Send</button></div><p class="chat-hint">Press Enter to send · Shift + Enter for a new line</p>
       </div>
@@ -536,30 +551,45 @@
       }
       function openScoreChat(){ if(!scoreContext)return; $('scoreChat').classList.remove('hidden');$('chatInput').focus(); }
       function closeScoreChat(){ $('scoreChat').classList.add('hidden'); }
-      function newScoreConversation(){activeConversationId=null;chatMessages=[];$('chatMessages').innerHTML='';$('chatInput').focus();}
+      function newScoreConversation(){activeConversationId=null;chatMessages=[];$('chatMessages').innerHTML='';$('chatConversationList').classList.add('hidden');$('chatInput').focus();}
       async function loadConversationList(){const holder=$('chatConversationList');holder.classList.remove('hidden');holder.innerHTML='<p>Loading saved conversations…</p>';try{const data=await api('/public/conversations');const conversations=data.conversations||[];window.loadedConversations=conversations;holder.innerHTML=conversations.length?`<p>${esc(data.retention||'')}</p>${conversations.map(conversation=>`<div class="conversation-item"><div><strong>${esc(conversation.title)}</strong><br><small>${esc(new Date(conversation.updatedAt).toLocaleDateString())}</small></div><div><button type="button" class="secondary" onclick="openSavedConversation('${conversation.id}')">Continue</button><button type="button" class="secondary" onclick="renameConversation('${conversation.id}')">Rename</button><button type="button" class="secondary" onclick="deleteConversation('${conversation.id}')">Delete</button></div></div>`).join('')}`:'<p>No saved conversations yet. Start a conversation from this report.</p>';}catch(error){holder.innerHTML=`<p>${esc(error.message||'Could not load saved conversations.')}</p>`;}}
       async function openSavedConversation(id){try{const conversation=await api(`/public/conversations/${encodeURIComponent(id)}`);activeConversationId=conversation.id;chatMessages=[];$('chatMessages').innerHTML='';for(const message of conversation.messages||[]){appendChatMessage(message.role==='assistant'?'assistant':'user',message.content,'',Array.isArray(message.sources)?message.sources:[]);chatMessages.push({role:message.role==='assistant'?'assistant':'user',content:message.content});}$('chatConversationList').classList.add('hidden');$('chatInput').focus();}catch(error){$('saveStatus').textContent=error.message||'Could not open that conversation.';}}
       async function renameConversation(id){const current=(window.loadedConversations||[]).find(conversation=>conversation.id===id)?.title||'';const title=window.prompt('Rename this conversation',current);if(!title?.trim())return;try{await api(`/public/conversations/${encodeURIComponent(id)}`,{method:'PATCH',body:JSON.stringify({title:title.trim()})});await loadConversationList();}catch(error){$('saveStatus').textContent=error.message||'Could not rename that conversation.';}}
       async function deleteConversation(id){if(!window.confirm('Delete this conversation? This cannot be undone.'))return;try{await api(`/public/conversations/${encodeURIComponent(id)}`,{method:'DELETE'});if(activeConversationId===id)newScoreConversation();await loadConversationList();}catch(error){$('saveStatus').textContent=error.message||'Could not delete that conversation.';}}
       function useSuggestion(text){ $('chatInput').value=text;$('chatInput').focus(); }
+      function scrollChatToLatest(){const body=$('chatBody');body.scrollTop=body.scrollHeight;}
+      function appendChatText(container,text){
+        let list=null,listType='';
+        const closeList=()=>{list=null;listType='';};
+        String(text).split(/\r?\n/).forEach(line=>{
+          const trimmed=line.trim();const bullet=trimmed.match(/^[-•*]\s+(.+)/);const numbered=trimmed.match(/^\d+[.)]\s+(.+)/);
+          if(bullet||numbered){const nextType=numbered?'ol':'ul';if(!list||listType!==nextType){list=document.createElement(nextType);listType=nextType;container.append(list);}const item=document.createElement('li');item.textContent=(bullet||numbered)[1];list.append(item);return;}
+          closeList();if(!trimmed)return;const paragraph=document.createElement('p');paragraph.textContent=trimmed;container.append(paragraph);
+        });
+      }
       function appendChatMessage(role,text,extraClass='',sources=[]){
         const item=document.createElement('div');item.className=`chat-message ${role} ${extraClass}`;
-        const label=document.createElement('span');label.className='message-label';label.textContent=role==='user'?'You':'AI readiness coach';
-        const content=document.createElement('p');content.textContent=text;item.append(label,content);
-        if(role==='assistant'&&sources.length){const sourceLine=document.createElement('div');sourceLine.className='chat-sources';sourceLine.append('Sources: ');sources.forEach((source,position)=>{if(position)sourceLine.append(' · ');const label=[source.title,source.section].filter(Boolean).join(' — ');if(source.citation&&/^https?:\/\//.test(source.citation)){const link=document.createElement('a');link.href=source.citation;link.target='_blank';link.rel='noopener noreferrer';link.textContent=label;sourceLine.append(link);}else sourceLine.append(label);});item.append(sourceLine);}
-        $('chatMessages').append(item);$('chatBody').scrollTop=$('chatBody').scrollHeight;return item;
+        const label=document.createElement('span');label.className='message-label';label.textContent=role==='user'?'You':'AI readiness coach';item.append(label);
+        appendChatText(item,text);
+        if(role==='assistant'&&sources.length){const sourceLine=document.createElement('div');sourceLine.className='chat-sources';sourceLine.append('Sources: ');sources.forEach((source,position)=>{if(position)sourceLine.append(' · ');const sourceLabel=[source.title,source.section].filter(Boolean).join(' — ');if(source.citation&&/^https?:\/\//.test(source.citation)){const link=document.createElement('a');link.href=source.citation;link.target='_blank';link.rel='noopener noreferrer';link.textContent=sourceLabel;sourceLine.append(link);}else sourceLine.append(sourceLabel);});item.append(sourceLine);}
+        $('chatMessages').append(item);scrollChatToLatest();return item;
+      }
+      function appendCoachThinking(){
+        const item=document.createElement('div');item.className='chat-message assistant thinking';item.setAttribute('role','status');item.setAttribute('aria-live','polite');
+        const label=document.createElement('span');label.className='message-label';label.textContent='AI readiness coach';
+        const indicator=document.createElement('div');indicator.className='coach-typing';indicator.innerHTML='<span class="coach-typing-orbs" aria-hidden="true"><i></i><i></i><i></i></span><span class="sr-only">The AI readiness coach is preparing a response.</span>';
+        item.append(label,indicator);$('chatMessages').append(item);scrollChatToLatest();return item;
       }
       async function sendScoreChat(){
         const input=$('chatInput'),send=$('chatSend'),text=input.value.trim();if(!text||!scoreContext||send.disabled)return;
-        input.value='';send.disabled=true;appendChatMessage('user',text);chatMessages.push({role:'user',content:text});
-        const thinking=appendChatMessage('assistant','Thinking through your score profile…','thinking');
+        input.value='';send.disabled=true;input.disabled=true;$('chatBody').setAttribute('aria-busy','true');appendChatMessage('user',text);chatMessages.push({role:'user',content:text});
+        const thinking=appendCoachThinking();
         try{
-          const conversation=chatMessages.length>7?chatMessages.slice(-7):chatMessages;
           const data=await api('/public/score-chat',{method:'POST',body:JSON.stringify({assessmentId:scoreContext.assessmentId||undefined,conversationId:activeConversationId||undefined,message:text,role:scoreContext.role})});thinking.remove();
           if(!data.message)throw new Error('No answer returned');
           activeConversationId=data.conversationId||activeConversationId;appendChatMessage('assistant',data.message,'',Array.isArray(data.sources)?data.sources:[]);chatMessages.push({role:'assistant',content:data.message});
         }catch(error){thinking.remove();appendChatMessage('assistant',error.message||'I could not reach the AI coach right now. Please try again in a moment.');}
-        finally{send.disabled=false;input.focus();}
+        finally{$('chatBody').removeAttribute('aria-busy');send.disabled=false;input.disabled=false;input.focus();}
       }
       $('chatInput').addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();sendScoreChat();}});
       $('password').addEventListener('input',validatePasswords);$('confirmPassword').addEventListener('input',validatePasswords);$('dimensionCommentText').addEventListener('input',()=>{$('dimensionCommentCount').textContent=$('dimensionCommentText').value.length;});setupPasswordToggle('password','passwordToggle');setupPasswordToggle('confirmPassword','confirmPasswordToggle');
