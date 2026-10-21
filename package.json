@@ -17,6 +17,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
     "db:bootstrap": "tsx scripts/bootstrap.ts",
+    "research:build": "tsx scripts/build-research-artifact.ts",
+    "research:verify": "tsx scripts/verify-research-artifact.ts",
     "test": "vitest run --pool=forks --maxWorkers=1 --minWorkers=1"
   },
   "dependencies": {
