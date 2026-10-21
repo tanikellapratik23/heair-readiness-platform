@@ -25,7 +25,9 @@ export class ScoringService {
       prisma.questionResponse.findMany({ where: { sessionId }, include: { question: { include: { subDimension: true } } } })
     ]);
     if (!session) throw new Error("Assessment session not found.");
-    const expectedQuestions = await prisma.question.count({ where: { active: true, sessionScoped: false, role: session.roleAtTime } });
+    // Contextual AI-use/training questions have no readiness subdimension and
+    // are deliberately excluded from readiness scores and response coverage.
+    const expectedQuestions = await prisma.question.count({ where: { active: true, sessionScoped: false, role: session.roleAtTime, subDimensionId: { not: null } } });
     const buckets = new Map<string, { weighted: number; weights: number; count: number; dimensionId: string }>();
     let excludedResponses = 0;
     let scoredResponses = 0;
@@ -35,6 +37,7 @@ export class ScoringService {
       const normalized = normalizeResponse(value, response.question.questionType, response.question.scoringKey);
       if (normalized === null) continue;
       const key = response.question.subDimensionId;
+      if (!key || !response.question.subDimension) continue;
       const bucket = buckets.get(key) ?? { weighted: 0, weights: 0, count: 0, dimensionId: response.question.subDimension.dimensionId };
       const weight = Number(response.question.weight);
       bucket.weighted += normalized * weight; bucket.weights += weight; bucket.count++; buckets.set(key, bucket); scoredResponses += 1;

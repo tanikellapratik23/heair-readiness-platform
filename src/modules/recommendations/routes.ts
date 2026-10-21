@@ -60,7 +60,11 @@ const saveResultInput = z.object({
   role: assessmentRole,
   overallScore: z.number().min(0).max(100).optional(),
   scores: z.array(z.object({ subDimension: z.string().min(1).max(100), dimension: z.string().min(1).max(100), score: z.number().min(0).max(100) })).min(0).max(17),
-  responses: z.array(z.object({ subDimension: z.string().min(1).max(100), value: z.union([z.number(), z.string(), z.object({ value: z.union([z.number(), z.string()]), scope: z.literal("department_or_team").optional() })]) })).min(1).max(17).optional(),
+  responses: z.array(z.object({
+    questionKey: z.string().min(1).max(120).optional(),
+    subDimension: z.string().min(1).max(100).nullable().optional(),
+    value: z.union([z.number(), z.string(), z.array(z.string().min(1).max(240)), z.object({ value: z.union([z.number(), z.string()]), scope: z.literal("department_or_team").optional() })])
+  })).min(1).max(21).optional(),
   dimensionComments: z.array(z.object({ dimensionId: z.string().min(1).max(80), text: z.string().trim().max(1200) })).max(4).optional(),
   submissionId: z.string().uuid().optional(),
   report: reportInput
@@ -262,7 +266,7 @@ async function authorizedAssessmentProfile(userId: string, requestedSessionId?: 
       excludedResponseCount: session.scoreResult.excludedResponseCount,
       responseCoveragePercent: session.scoreResult.responseCoveragePercent
     },
-    responses: session.responses.map((response) => ({ subDimension: response.question.subDimension.label, prompt: response.question.prompt, response: response.responseValue })),
+    responses: session.responses.map((response) => ({ subDimension: response.question.subDimension?.label ?? "AI use and training", prompt: response.question.prompt, response: response.responseValue })),
     comments: session.dimensionComments.map((comment) => ({ dimension: comment.dimension.label, text: comment.text })),
     strengths: session.report?.recommendations.filter((recommendation) => recommendation.category === "strength").map((recommendation) => recommendation.title) ?? [],
     priorities: session.report?.recommendations.filter((recommendation) => recommendation.category === "priority_action").map((recommendation) => recommendation.title) ?? []
@@ -369,7 +373,7 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
       })) ?? [];
       const assessmentResponses = session.responses.map((response) => ({
         prompt: response.question.prompt,
-        subDimension: response.question.subDimension.label,
+        subDimension: response.question.subDimension?.label ?? "AI use and training",
         responseValue: response.responseValue
       }));
       const citationIds = session.report?.recommendations.flatMap((recommendation) => recommendation.supportingCitationIds) ?? [];
@@ -415,21 +419,24 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
         return { sessionId: existing.id, scoreResultId: existing.scoreResult?.id, alreadySaved: true, institutionComparison: existing.scoreResult ? await getInstitutionComparison(user.institutionId, user.institution?.name ?? null, existing.roleAtTime, Number(existing.scoreResult.overallScore), scores) : null };
       }
     }
-    const questions = await prisma.question.findMany({ where: { role: body.data.role, active: true, sessionScoped: false }, select: { id: true, subDimensionId: true } });
-    const rawBySubDimension = new Map<string, AssessmentResponseValue>();
+    const questions = await prisma.question.findMany({ where: { role: body.data.role, active: true, sessionScoped: false }, select: { id: true, instrumentKey: true, subDimensionId: true } });
+    const rawByQuestionId = new Map<string, AssessmentResponseValue>();
     for (const response of body.data.responses ?? []) {
-      const id = subDimensionIds[response.subDimension];
-      if (id) rawBySubDimension.set(id, response.value as AssessmentResponseValue);
+      const question = response.questionKey
+        ? questions.find((item) => item.instrumentKey === response.questionKey)
+        : questions.find((item) => item.subDimensionId && item.subDimensionId === subDimensionIds[response.subDimension ?? ""]);
+      if (question) rawByQuestionId.set(question.id, response.value as AssessmentResponseValue);
     }
     // Backward-compatible clients may still submit numerical subdimension scores.
     for (const score of body.data.scores) {
       const id = subDimensionIds[score.subDimension];
-      if (id && !rawBySubDimension.has(id)) rawBySubDimension.set(id, Math.round(Number(score.score) / 25) + 1);
+      const question = questions.find((item) => item.subDimensionId === id);
+      if (question && !rawByQuestionId.has(question.id)) rawByQuestionId.set(question.id, Math.round(Number(score.score) / 25) + 1);
     }
-    if (rawBySubDimension.size !== questions.length) return reply.code(400).send({ error: "Answer every required question before submitting the assessment." });
+    if (rawByQuestionId.size !== questions.length) return reply.code(400).send({ error: "Answer every required question before submitting the assessment." });
     const session = await prisma.$transaction(async (tx) => {
       const created = await tx.assessmentSession.create({ data: { userId: user.id, roleAtTime: body.data.role, departmentIdAtTime: user.departmentId, unitNameAtTime: user.unitName, methodologyVersion: METHODOLOGY_VERSION, clientSubmissionId: body.data.submissionId, status: "completed", completedAt: new Date() } });
-      await tx.questionResponse.createMany({ data: questions.map((question) => ({ sessionId: created.id, questionId: question.id, responseValue: rawBySubDimension.get(question.subDimensionId)! as Prisma.InputJsonValue })) });
+      await tx.questionResponse.createMany({ data: questions.map((question) => ({ sessionId: created.id, questionId: question.id, responseValue: rawByQuestionId.get(question.id)! as Prisma.InputJsonValue })) });
       if (body.data.dimensionComments?.length) await tx.assessmentDimensionComment.createMany({ data: body.data.dimensionComments.filter((comment) => comment.text).map((comment) => ({ sessionId: created.id, dimensionId: comment.dimensionId, text: comment.text })) });
       return created;
     });
@@ -438,8 +445,10 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
     const report = toSavedReport(body.data.report);
     await prisma.readinessReport.create({ data: { sessionId: session.id, overallScore: scored.overallScore, summaryText: report.summaryText, structuredData: { ...body.data.report, methodologyVersion: METHODOLOGY_VERSION }, recommendations: report.recommendations } });
     const institutionComparison = await getInstitutionComparison(user.institutionId, user.institution?.name ?? null, body.data.role, Number(scored.overallScore), savedScores);
-    const coverage = coverageFromCounts({ totalQuestions: questions.length, answered: rawBySubDimension.size, scored: savedScores.length, excluded: [...rawBySubDimension.values()].filter(isExcludedResponse).length });
-    return reply.code(201).send({ sessionId: session.id, scoreResultId: scored.id, overallScore: Number(scored.overallScore), scores: savedScores, methodology: { version: METHODOLOGY_VERSION, ...coverage, status: "requires_research_team_approval" }, institutionComparison });
+    const readinessQuestionCount = questions.filter((question) => question.subDimensionId !== null).length;
+    const readinessResponses = questions.filter((question) => question.subDimensionId !== null).map((question) => rawByQuestionId.get(question.id));
+    const coverage = coverageFromCounts({ totalQuestions: readinessQuestionCount, answered: readinessResponses.length, scored: savedScores.length, excluded: readinessResponses.filter((value) => value !== undefined && isExcludedResponse(value)).length });
+    return reply.code(201).send({ sessionId: session.id, scoreResultId: scored.id, overallScore: Number(scored.overallScore), scores: savedScores, methodology: { version: METHODOLOGY_VERSION, totalQuestions: readinessQuestionCount, ...coverage, status: "requires_research_team_approval" }, institutionComparison });
   });
 
   app.post("/public/recommendations", async (request, reply) => {

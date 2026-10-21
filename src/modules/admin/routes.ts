@@ -184,9 +184,9 @@ export async function adminRoutes(app: FastifyInstance) {
       const dimensionScores = new Map(result.dimensionScores.map((score) => [score.dimension.id, Number(score.score)]));
       const subDimensionScores = new Map(result.subDimensionScores.map((score) => [score.subDimension.id, Number(score.score)]));
       const responseData = session.responses
-        .sort((left, right) => left.question.subDimension.sortOrder - right.question.subDimension.sortOrder)
+        .sort((left, right) => (left.question.subDimension?.sortOrder ?? Number.MAX_SAFE_INTEGER) - (right.question.subDimension?.sortOrder ?? Number.MAX_SAFE_INTEGER))
         .map((response) => ({
-          subDimension: response.question.subDimension.label,
+          subDimension: response.question.subDimension?.label ?? "AI use and training metadata",
           question: response.question.prompt,
           response: response.responseValue
         }));

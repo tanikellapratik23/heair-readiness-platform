@@ -44,7 +44,25 @@ export const METRIC_SCALES: Record<MetricType, readonly string[]> = {
   agreement: ["Strongly disagree", "Disagree", "Neither agree nor disagree", "Agree", "Strongly agree"]
 };
 
-type PromptRow = { subDimensionId: (typeof PROJECT_HEARMES_SUB_DIMENSIONS)[number]["id"]; metricType: MetricType; prompt: string; helpText?: string };
+export type InstrumentQuestionType = "likert_5" | "multiple_choice" | "multi_select";
+type PromptRow = {
+  subDimensionId: (typeof PROJECT_HEARMES_SUB_DIMENSIONS)[number]["id"];
+  metricType: MetricType;
+  prompt: string;
+  helpText?: string;
+};
+export type InstrumentMetadataQuestion = {
+  id: string;
+  prompt: string;
+  helpText: string;
+  questionType: Exclude<InstrumentQuestionType, "likert_5">;
+  options: readonly string[];
+  /** Metadata questions are retained for authorized research/admin use only. */
+  includeInReadinessScore: false;
+  includeInInstitutionDashboard: false;
+  allowNotApplicable: false;
+  allowDepartmentScope: false;
+};
 const rows = (entries: PromptRow[]) => entries;
 
 export const PROJECT_HEARMES_QUESTION_ROWS: Record<InstrumentRole, PromptRow[]> = {
@@ -164,10 +182,71 @@ export const PROJECT_HEARMES_QUESTION_ROWS: Record<InstrumentRole, PromptRow[]> 
   ])
 };
 
+/**
+ * Cross-role contextual questions. These are deliberately separate from the
+ * validated readiness instrument: they inform authorized research and admin
+ * review but never contribute to individual or institutional readiness scores.
+ */
+export const PROJECT_HEARMES_METADATA_QUESTIONS: readonly InstrumentMetadataQuestion[] = [
+  {
+    id: "ai_tools_used",
+    prompt: "Which AI (LLM) tools do you utilize routinely?",
+    helpText: "Select all that apply.",
+    questionType: "multi_select",
+    options: ["ChatGPT (OpenAI)", "Gemini (Google)", "Copilot (Microsoft)", "Meta AI (Meta)", "Claude (Anthropic)", "Grok (xAI)", "DeepSeek", "Perplexity", "Grammarly or a similar writing assistant", "AI coding assistant (Codex, Claude Code, GitHub Copilot)", "An AI tool built into a course platform (Canvas, Pearson, McGraw Hill, etc.)", "Other", "None"],
+    includeInReadinessScore: false,
+    includeInInstitutionDashboard: false,
+    allowNotApplicable: false,
+    allowDepartmentScope: false
+  },
+  {
+    id: "ai_subscription",
+    prompt: "Do you pay for an AI tool subscription?",
+    helpText: "Select one.",
+    questionType: "multiple_choice",
+    options: ["Yes, for one or more", "No, I use the enterprise tools offered by UNC Charlotte (e.g., Gemini, Copilot, NotebookLM)", "No, I use free versions only", "No, I do not use AI tools"],
+    includeInReadinessScore: false,
+    includeInInstitutionDashboard: false,
+    allowNotApplicable: false,
+    allowDepartmentScope: false
+  },
+  {
+    id: "ai_learning_sources",
+    prompt: "How do you primarily learn about AI?",
+    helpText: "Select all that apply.",
+    questionType: "multi_select",
+    options: ["News articles", "Social media", "Movies/TV shows", "Academic journals", "Books", "Friends", "Family", "Online forums", "Classroom"],
+    includeInReadinessScore: false,
+    includeInInstitutionDashboard: false,
+    allowNotApplicable: false,
+    allowDepartmentScope: false
+  },
+  {
+    id: "ai_training_formats",
+    prompt: "If UNC Charlotte offered AI training, which formats would you actually attend?",
+    helpText: "Select all that apply.",
+    questionType: "multi_select",
+    options: ["A short online module I could complete on my own time", "A workshop through the library or a campus center", "A session built into a course I am already taking", "A semester-long elective course for credit", "A certificate program I could list on my resume", "Peer learning-based programs", "Webinars or town halls"],
+    includeInReadinessScore: false,
+    includeInInstitutionDashboard: false,
+    allowNotApplicable: false,
+    allowDepartmentScope: false
+  }
+] as const;
+
 export function projectHearmesQuestionsForRole(role: InstrumentRole) {
-  return PROJECT_HEARMES_QUESTION_ROWS[role].map((question, index) => {
+  const readinessQuestions = PROJECT_HEARMES_QUESTION_ROWS[role].map((question, index) => {
     const subDimension = PROJECT_HEARMES_SUB_DIMENSIONS.find((item) => item.id === question.subDimensionId)!;
     const dimension = PROJECT_HEARMES_DIMENSIONS.find((item) => item.id === subDimension.dimensionId)!;
-    return { ...question, id: `project-hearmes-${role}-${question.subDimensionId}`, questionType: "likert_5" as const, weight: 1, isAdaptiveSeed: index === 0 || index === 12, allowNotApplicable: true, allowDepartmentScope: true, subDimension, dimension };
+    return { ...question, id: `project-hearmes-${role}-${question.subDimensionId}`, questionType: "likert_5" as const, weight: 1, isAdaptiveSeed: index === 0 || index === 12, includeInReadinessScore: true, includeInInstitutionDashboard: true, allowNotApplicable: true, allowDepartmentScope: true, subDimension, dimension };
   });
+  const metadataQuestions = PROJECT_HEARMES_METADATA_QUESTIONS.map((question) => ({
+    ...question,
+    id: `project-hearmes-${role}-${question.id}`,
+    weight: 0,
+    isAdaptiveSeed: false,
+    subDimension: null,
+    dimension: { id: "additional_information", label: "AI use and training", description: "Contextual questions that do not affect readiness scores.", sortOrder: 99 }
+  }));
+  return [...readinessQuestions, ...metadataQuestions];
 }

@@ -20,7 +20,7 @@ export const LIKERT_ANCHORS = [
 export const EXCLUDED_RESPONSE_VALUES = ["not_sure", "not_applicable"] as const;
 export type ExcludedResponseValue = (typeof EXCLUDED_RESPONSE_VALUES)[number];
 export type ResponseScope = "department_or_team";
-export type AssessmentResponseValue = number | string | boolean | { value: number | string; scope?: ResponseScope } | null;
+export type AssessmentResponseValue = number | string | string[] | boolean | { value: number | string; scope?: ResponseScope } | null;
 
 export type Coverage = {
   answered: number;

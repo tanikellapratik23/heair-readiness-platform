@@ -16,6 +16,7 @@ function validValue(type: QuestionType, value: unknown) {
   const raw = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>).value : value;
   if (EXCLUDED_RESPONSE_VALUES.includes(raw as (typeof EXCLUDED_RESPONSE_VALUES)[number])) return true;
   if (type === "likert_5") return typeof raw === "number" && Number.isInteger(raw) && raw >= 1 && raw <= 5;
+  if (type === "multi_select") return Array.isArray(value) && value.length > 0 && value.every((item) => typeof item === "string" && item.trim().length > 0);
   if (type === "yes_no") return typeof value === "boolean" || value === "yes" || value === "no";
   if (type === "free_text") return typeof value === "string";
   return typeof value === "string";
@@ -55,7 +56,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
     if (!session) return fail(reply, 404, "Assessment not found."); if (session.userId !== user?.id) return fail(reply, 403, "Not permitted.");
     if (session.status !== SessionStatus.in_progress) return fail(reply, 409, "Assessment is no longer in progress.");
     const answered = session.responses.map((r) => r.questionId);
-    const question = await prisma.question.findFirst({ where: { role: session.roleAtTime, active: true, id: { notIn: answered }, sessionScoped: false }, include: { subDimension: true }, orderBy: [{ subDimension: { dimension: { sortOrder: "asc" } } }, { subDimension: { sortOrder: "asc" } }] });
+    const question = await prisma.question.findFirst({ where: { role: session.roleAtTime, active: true, id: { notIn: answered }, sessionScoped: false }, include: { subDimension: true }, orderBy: [{ subDimension: { dimension: { sortOrder: "asc" } } }, { subDimension: { sortOrder: "asc" } }, { createdAt: "asc" }] });
     return { complete: !question, question };
   });
 
@@ -67,7 +68,7 @@ export async function assessmentRoutes(app: FastifyInstance) {
     const questions = await prisma.question.findMany({
       where: { role: session.roleAtTime, active: true, sessionScoped: false },
       include: { subDimension: { include: { dimension: true } } },
-      orderBy: [{ subDimension: { dimension: { sortOrder: "asc" } } }, { subDimension: { sortOrder: "asc" } }]
+      orderBy: [{ subDimension: { dimension: { sortOrder: "asc" } } }, { subDimension: { sortOrder: "asc" } }, { createdAt: "asc" }]
     });
     const responses = new Map(session.responses.map((response) => [response.questionId, response.responseValue]));
     return { session: { id: session.id, status: session.status, role: session.roleAtTime, methodologyVersion: session.methodologyVersion }, questions: questions.map((question) => ({ ...question, responseValue: responses.get(question.id) ?? null })) };

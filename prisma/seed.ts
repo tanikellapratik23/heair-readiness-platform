@@ -1,6 +1,6 @@
 import { PrismaClient, StakeholderRole } from "@prisma/client";
 import { HEAIR_DOCUMENT_ID, HEAIR_KNOWLEDGE_CHUNKS, HEAIR_SOURCE_CITATION, HEAIR_SOURCE_TITLE } from "../src/modules/knowledge/heair-framework.js";
-import { PROJECT_HEARMES_DIMENSIONS, PROJECT_HEARMES_QUESTION_ROWS, PROJECT_HEARMES_SUB_DIMENSIONS } from "../src/lib/instrument.js";
+import { PROJECT_HEARMES_DIMENSIONS, PROJECT_HEARMES_QUESTION_ROWS, PROJECT_HEARMES_SUB_DIMENSIONS, projectHearmesQuestionsForRole } from "../src/lib/instrument.js";
 
 const prisma = new PrismaClient();
 
@@ -80,12 +80,26 @@ async function main() {
   await prisma.question.updateMany({ where: { sessionScoped: false, active: true, responses: { some: {} } }, data: { active: false } });
   await prisma.question.deleteMany({ where: { sessionScoped: false, responses: { none: {} }, triggerRules: { none: {} }, followUpFor: { none: {} } } });
   for (const role of Object.keys(PROJECT_HEARMES_QUESTION_ROWS) as AssessmentRole[]) {
-    for (let i = 0; i < PROJECT_HEARMES_QUESTION_ROWS[role].length; i++) {
-      const question = PROJECT_HEARMES_QUESTION_ROWS[role][i];
-      await prisma.question.create({ data: { role: role as StakeholderRole, subDimensionId: question.subDimensionId, prompt: question.prompt, helpText: question.helpText, metricType: question.metricType, questionType: "likert_5", weight: 1, isAdaptiveSeed: i === 0 || i === 12 } });
+    for (const question of projectHearmesQuestionsForRole(role)) {
+      await prisma.question.create({
+        data: {
+          role: role as StakeholderRole,
+          instrumentKey: question.id,
+          subDimensionId: question.subDimension?.id ?? null,
+          prompt: question.prompt,
+          helpText: question.helpText,
+          metricType: "metricType" in question ? question.metricType ?? null : null,
+          questionType: question.questionType,
+          options: "options" in question ? [...question.options] : undefined,
+          weight: question.weight,
+          isAdaptiveSeed: question.isAdaptiveSeed,
+          allowNotApplicable: question.allowNotApplicable,
+          allowDepartmentScope: question.allowDepartmentScope
+        }
+      });
     }
   }
-  console.log("Seeded Project HEARMES taxonomy, 102 role-adaptive draft-instrument questions, and source-grounded retrieval chunks.");
+  console.log("Seeded Project HEARMES taxonomy, 126 role-adaptive questions (17 readiness + 4 contextual per role), and source-grounded retrieval chunks.");
 }
 
 main().finally(() => prisma.$disconnect());

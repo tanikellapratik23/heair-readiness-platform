@@ -37,6 +37,7 @@ enum SessionStatus {
 enum QuestionType {
   likert_5
   multiple_choice
+  multi_select
   yes_no
   free_text
 }
@@ -147,7 +148,8 @@ model SubDimension {
 model Question {
   id String @id @default(uuid()) @db.Uuid
   role StakeholderRole
-  subDimensionId String
+  subDimensionId String?
+  instrumentKey String? @unique @db.VarChar(120)
   prompt String
   helpText String?
   questionType QuestionType @default(likert_5)
@@ -161,7 +163,7 @@ model Question {
   allowNotApplicable Boolean @default(true)
   allowDepartmentScope Boolean @default(true)
   createdAt DateTime @default(now())
-  subDimension SubDimension @relation(fields: [subDimensionId], references: [id])
+  subDimension SubDimension? @relation(fields: [subDimensionId], references: [id])
   responses QuestionResponse[]
   triggerRules FollowUpRule[] @relation("TriggerQuestion")
   followUpFor FollowUpRule[] @relation("FollowUpQuestion")
