@@ -10,7 +10,7 @@ Working backend for role-adaptive Higher Education AI Readiness and Maturity Eva
 
 Want to see how AI-ready your organization is?
 
-**[Take the Project HEARMES Assessment](https://tanikellapratik23.github.io/heair-readiness-platform/docs/)**
+**[Take the Project HEARMES Assessment](https://tanikellapratik23.github.io/heair-readiness-platform)**
 
 - **Role-specific instrument**: Questions use their appropriate awareness, frequency, confidence, likelihood, importance, or agreement metric scale.
 - **Instant AI Score & Coaching Response**: Receive a customized, AI-generated breakdown tailored to your results, highlighting key strengths and immediate steps for growth.
