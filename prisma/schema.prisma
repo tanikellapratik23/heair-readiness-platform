@@ -154,7 +154,10 @@ model Question {
   id String @id @default(uuid()) @db.Uuid
   role StakeholderRole
   subDimensionId String?
-  instrumentKey String? @unique @db.VarChar(120)
+  // Instrument keys identify configured survey questions, but older seeded
+  // databases may contain duplicate historical values. Keep this indexed for
+  // lookup without blocking a safe production schema update on legacy data.
+  instrumentKey String? @db.VarChar(120)
   prompt String
   helpText String?
   questionType QuestionType @default(likert_5)
@@ -172,6 +175,7 @@ model Question {
   responses QuestionResponse[]
   triggerRules FollowUpRule[] @relation("TriggerQuestion")
   followUpFor FollowUpRule[] @relation("FollowUpQuestion")
+  @@index([instrumentKey])
 }
 
 model FollowUpRule {

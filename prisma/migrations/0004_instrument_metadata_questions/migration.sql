@@ -6,5 +6,5 @@ ALTER TABLE "Question"
   ALTER COLUMN "subDimensionId" DROP NOT NULL,
   ADD COLUMN IF NOT EXISTS "instrumentKey" VARCHAR(120);
 
-CREATE UNIQUE INDEX IF NOT EXISTS "Question_instrumentKey_key"
+CREATE INDEX IF NOT EXISTS "Question_instrumentKey_idx"
   ON "Question"("instrumentKey");
