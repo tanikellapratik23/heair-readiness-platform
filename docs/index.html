@@ -260,6 +260,12 @@
       const $=id=>document.getElementById(id);
       const esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
       const apiBase=()=>window.HEAIR_API_URL?.replace(/\/$/,'');
+      let backendWarmup=null;
+      function warmBackend(){
+        if(!apiBase())return Promise.resolve();
+        if(!backendWarmup)backendWarmup=fetch(`${apiBase()}/health`,{cache:'no-store'}).then(response=>{if(!response.ok)throw new Error('Backend unavailable.');}).catch(()=>undefined);
+        return backendWarmup;
+      }
       const legacyRoleMap={administrator_leadership:'executive_leadership',leadership:'executive_leadership',academic_business_affairs_staff:'administrative_staff',business_affairs:'administrative_staff',communications:'programming_staff',it_staff:'programming_staff'};
       const metricScales={awareness:['Not aware','Slightly aware','Somewhat aware','Very aware','Fully aware'],frequency:['Never','Rarely','Sometimes','Often','Consistently'],ability_confidence:['Not at all confident','Slightly confident','Moderately confident','Very confident','Extremely confident'],likelihood:['Very unlikely','Unlikely','Neither likely nor unlikely','Likely','Very likely'],importance:['Not important','Slightly important','Moderately important','Very important','Extremely important'],agreement:['Strongly disagree','Disagree','Neither agree nor disagree','Agree','Strongly agree']};
       const metricAnchors=metricType=>(metricScales[metricType]||metricScales.agreement).map((label,index)=>[label,index+1,index===0?'Lowest response':index===4?'Highest response':'']);
@@ -287,14 +293,17 @@
       }
       async function api(path,options={}){
         if(!apiBase())throw new Error('Account storage is not configured yet.');
-        const controller=new AbortController(),timeout=window.setTimeout(()=>controller.abort(),65000);
+        // Free Render services can take longer than a minute to wake after
+        // inactivity. Warm it on page load and give the first secure request
+        // enough time instead of failing a valid sign-in prematurely.
+        const controller=new AbortController(),timeout=window.setTimeout(()=>controller.abort(),125000);
         try{
           const response=await fetch(apiBase()+path,{...options,signal:controller.signal,headers:{'content-type':'application/json',...(authToken?{Authorization:`Bearer ${authToken}`}:{}),...(options.headers||{})}});
           const data=await response.json().catch(()=>({}));
           if(!response.ok)throw new Error(data.error||'Something went wrong. Please try again.');
           return data;
         }catch(error){
-          if(error?.name==='AbortError')throw new Error('The secure account service did not respond. Please try again in a minute.');
+          if(error?.name==='AbortError')throw new Error('The secure account service is still waking up. Please wait about 30 seconds, then try again.');
           throw error;
         }finally{window.clearTimeout(timeout);}
       }
@@ -628,6 +637,7 @@
       const launchParams=new URLSearchParams(window.location.search),requestedAuth=launchParams.get('auth');
       if(requestedAuth==='login'||requestedAuth==='register')openAccount(requestedAuth);
       else if(launchParams.get('assessment')==='1')openAccount('register');
+      void warmBackend();
       (async()=>{if(!authToken)return;try{const user=await api('/me');showSignedIn(user);if(isAdministrator(user))await loadAdminOverview();else await loadSavedResults();}catch{localStorage.removeItem('heair_auth_token');authToken='';}})();
     </script>
   </body>
