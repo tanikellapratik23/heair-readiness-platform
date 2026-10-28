@@ -9,7 +9,9 @@ import { reportRoutes } from "./modules/reports/routes.js";
 import { analyticsRoutes } from "./modules/analytics/routes.js";
 import { adminRoutes } from "./modules/admin/routes.js";
 import { publicRecommendationRoutes } from "./modules/recommendations/routes.js";
+import { initializeResearchArtifact } from "./modules/knowledge/artifact.js";
 
+initializeResearchArtifact(); // Fail startup rather than silently using an incompatible index.
 const app = Fastify({ logger: true });
 await app.register(cors, { origin: true });
 await app.register(jwt, { secret: process.env.JWT_SECRET ?? "development-only-secret-change-me" });

@@ -1,6 +1,11 @@
 node_modules
 dist
 .env
+research-artifacts/
+research-inputs/
+*.artifact.json
+*.slurm.out
+*.slurm.err
 coverage
 *.log
 _cacache/
