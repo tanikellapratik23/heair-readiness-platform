@@ -560,7 +560,10 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
           originalFileName: upload.fileName,
           mediaType: upload.mediaType,
           byteSize: upload.bytes.byteLength,
-          fileData: upload.bytes,
+          // Prisma's Bytes input is an ArrayBuffer-backed Uint8Array. Buffer
+          // is ArrayBufferLike in newer Node typings, so copy it to the
+          // portable representation before persisting the original upload.
+          fileData: Uint8Array.from(upload.bytes),
           extractedText: upload.text,
           sha256: upload.sha256,
           accessScope: "private",
