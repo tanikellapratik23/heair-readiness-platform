@@ -75,6 +75,21 @@ const dimensionIds: Record<string, string> = { "Governance & Strategy": "governa
 const activeAssessmentRoles = ["student", "faculty", "executive_leadership", "administrative_staff", "programming_staff", "finance_staff"] as const;
 const minimumCohortRespondents = MINIMUM_PEER_RESPONDENTS;
 
+/** Keeps coach output readable if a model ignores the plain-prose instruction. */
+function plainCoachReply(value: string) {
+  return value
+    .replace(/\r/g, "")
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^\s*(?:[-*•]|\d+[.)])\s+/gm, "")
+    .replace(/\*([^*\n]+)\*/g, "$1")
+    .replace(/_([^_\n]+)_/g, "$1")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 function cleanInstitutionName(name: string) {
   return name.replace(/\s+/g, " ").trim();
 }
@@ -604,7 +619,7 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
       });
       if (!response.ok) return reply.code(502).send({ error: "The AI coach is temporarily unavailable." });
       const payload = await response.json() as { content?: Array<{ type: string; text?: string }> };
-      const message = payload.content?.find((part) => part.type === "text")?.text?.trim();
+      const message = plainCoachReply(payload.content?.find((part) => part.type === "text")?.text?.trim() ?? "");
       if (!message) return reply.code(502).send({ error: "The AI coach returned no answer." });
       const sources = [...new Map(retrievedContext.map((chunk) => [`${chunk.sourceTitle}:${chunk.section}`, { title: chunk.sourceTitle, section: chunk.section, citation: chunk.citation, publisher: chunk.publisher, publishedAt: chunk.publishedAt, sourceType: chunk.sourceType, reason: `Retrieved for ${chunk.section}.` }])).values()].slice(0, 3);
       if (!conversation) conversation = await prisma.chatConversation.create({ data: { userId: user.id, assessmentSessionId: profile.session.id, title: body.data.title ?? latestQuestion.slice(0, 80), methodologyVersion: profile.methodology.version }, include: { messages: true } });

@@ -566,10 +566,11 @@
       async function deleteConversation(id){if(!window.confirm('Delete this conversation? This cannot be undone.'))return;try{await api(`/public/conversations/${encodeURIComponent(id)}`,{method:'DELETE'});if(activeConversationId===id)newScoreConversation();await loadConversationList();}catch(error){$('saveStatus').textContent=error.message||'Could not delete that conversation.';}}
       function useSuggestion(text){ $('chatInput').value=text;$('chatInput').focus(); }
       function scrollChatToLatest(){const body=$('chatBody');body.scrollTop=body.scrollHeight;}
-      function appendChatText(container,text){
+      function plainCoachText(value){return String(value||'').replace(/\r/g,'').replace(/^\s{0,3}#{1,6}\s+/gm,'').replace(/\*\*([^*]+)\*\*/g,'$1').replace(/__([^_]+)__/g,'$1').replace(/`([^`]+)`/g,'$1').replace(/^\s*(?:[-*•]|\d+[.)])\s+/gm,'').replace(/\*([^*\n]+)\*/g,'$1').replace(/_([^_\n]+)_/g,'$1').replace(/\n{3,}/g,'\n\n').trim();}
+      function appendChatText(container,text,clean=false){
         let list=null,listType='';
         const closeList=()=>{list=null;listType='';};
-        String(text).split(/\r?\n/).forEach(line=>{
+        String(clean?plainCoachText(text):text).split(/\r?\n/).forEach(line=>{
           const trimmed=line.trim();const bullet=trimmed.match(/^[-•*]\s+(.+)/);const numbered=trimmed.match(/^\d+[.)]\s+(.+)/);
           if(bullet||numbered){const nextType=numbered?'ol':'ul';if(!list||listType!==nextType){list=document.createElement(nextType);listType=nextType;container.append(list);}const item=document.createElement('li');item.textContent=(bullet||numbered)[1];list.append(item);return;}
           closeList();if(!trimmed)return;const paragraph=document.createElement('p');paragraph.textContent=trimmed;container.append(paragraph);
@@ -578,7 +579,7 @@
       function appendChatMessage(role,text,extraClass='',sources=[]){
         const item=document.createElement('div');item.className=`chat-message ${role} ${extraClass}`;
         const label=document.createElement('span');label.className='message-label';label.textContent=role==='user'?'You':'AI readiness coach';item.append(label);
-        appendChatText(item,text);
+        appendChatText(item,text,role==='assistant');
         if(role==='assistant'&&sources.length){const sourceLine=document.createElement('div');sourceLine.className='chat-sources';sourceLine.append('Sources: ');sources.forEach((source,position)=>{if(position)sourceLine.append(' · ');const sourceLabel=[source.title,source.section].filter(Boolean).join(' — ');if(source.citation&&/^https?:\/\//.test(source.citation)){const link=document.createElement('a');link.href=source.citation;link.target='_blank';link.rel='noopener noreferrer';link.textContent=sourceLabel;sourceLine.append(link);}else sourceLine.append(sourceLabel);});item.append(sourceLine);}
         $('chatMessages').append(item);scrollChatToLatest();return item;
       }
