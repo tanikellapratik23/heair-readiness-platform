@@ -3,7 +3,8 @@ import { Prisma, RecommendationCategory } from "@prisma/client";
 import { z } from "zod";
 import { currentUser } from "../../lib/auth.js";
 import { prisma } from "../../lib/prisma.js";
-import { formatHeairContext, retrieveHeairContext } from "../knowledge/retrieval.js";
+import { formatHeairContext, formatPrivateCoachContext, retrieveHeairContext, retrievePrivateCoachContext } from "../knowledge/retrieval.js";
+import { COACH_CONTEXT_MAX_BYTES, COACH_CONTEXT_MAX_DOCUMENTS_PER_USER, parseCoachContextUpload } from "../knowledge/coach-context-documents.js";
 import { generatePublicAiReport } from "./anthropic.js";
 import { coachSystemPrompt, recentConversation, retrievalQuery, type CoachMessage } from "./coach-context.js";
 import { METHODOLOGY_VERSION, MINIMUM_PEER_RESPONDENTS, coverageFromCounts, isExcludedResponse, normalizeLikert, type AssessmentResponseValue } from "../../lib/assessment-methodology.js";
@@ -56,6 +57,10 @@ const actionPlanInput = z.object({
   assessmentId: z.string().uuid().nullable().optional()
 });
 const conversationTitle = z.object({ title: z.string().trim().min(1).max(180) });
+const coachContextUpload = z.object({
+  fileName: z.string().trim().min(1).max(180),
+  contentBase64: z.string().min(1).max(Math.ceil(COACH_CONTEXT_MAX_BYTES * 4 / 3) + 8)
+});
 const saveResultInput = z.object({
   role: assessmentRole,
   overallScore: z.number().min(0).max(100).optional(),
@@ -503,9 +508,79 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
   app.delete("/public/conversations/:id", async (request, reply) => {
     const user = await currentUser(request); const id = (request.params as { id: string }).id;
     if (!user) return reply.code(401).send({ error: "Sign in to manage conversations." });
-    const deleted = await prisma.chatConversation.deleteMany({ where: { id, userId: user.id } });
-    if (!deleted.count) return reply.code(404).send({ error: "Conversation not found." });
-    return reply.code(204).send();
+    const conversation = await prisma.chatConversation.findFirst({ where: { id, userId: user.id }, select: { id: true } });
+    if (!conversation) return reply.code(404).send({ error: "Conversation not found." });
+    // Delete messages explicitly before the conversation so this works even if
+    // an older deployed database has not yet received the cascade constraint.
+    await prisma.$transaction([
+      prisma.chatMessage.deleteMany({ where: { conversationId: conversation.id } }),
+      prisma.chatConversation.delete({ where: { id: conversation.id } })
+    ]);
+    return { deleted: true, id };
+  });
+
+  app.get("/public/coach-context-documents", async (request, reply) => {
+    const user = await currentUser(request);
+    if (!user) return reply.code(401).send({ error: "Sign in to view private coach context." });
+    const documents = await prisma.coachContextDocument.findMany({
+      where: { userId: user.id, accessScope: "private" },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, title: true, originalFileName: true, mediaType: true, byteSize: true, createdAt: true, updatedAt: true, _count: { select: { chunks: true } } }
+    });
+    return {
+      documents,
+      policy: {
+        accessScope: "private",
+        maxBytesPerFile: COACH_CONTEXT_MAX_BYTES,
+        maxDocuments: COACH_CONTEXT_MAX_DOCUMENTS_PER_USER,
+        supportedFormats: [".txt", ".md", ".csv", ".json"]
+      }
+    };
+  });
+
+  app.post("/public/coach-context-documents", async (request, reply) => {
+    const user = await currentUser(request);
+    if (!user) return reply.code(401).send({ error: "Sign in to add private coach context." });
+    const body = coachContextUpload.safeParse(request.body);
+    if (!body.success) return reply.code(400).send({ error: "Choose a valid text-based document no larger than 2 MB." });
+    const existingCount = await prisma.coachContextDocument.count({ where: { userId: user.id } });
+    if (existingCount >= COACH_CONTEXT_MAX_DOCUMENTS_PER_USER) return reply.code(400).send({ error: `You can keep up to ${COACH_CONTEXT_MAX_DOCUMENTS_PER_USER} private coach documents. Delete one before adding another.` });
+    let upload;
+    try {
+      upload = parseCoachContextUpload(body.data.fileName, body.data.contentBase64);
+    } catch (error) {
+      return reply.code(400).send({ error: error instanceof Error ? error.message : "The uploaded file could not be read." });
+    }
+    try {
+      const document = await prisma.coachContextDocument.create({
+        data: {
+          userId: user.id,
+          institutionId: user.institutionId,
+          title: upload.title,
+          originalFileName: upload.fileName,
+          mediaType: upload.mediaType,
+          byteSize: upload.bytes.byteLength,
+          fileData: upload.bytes,
+          extractedText: upload.text,
+          sha256: upload.sha256,
+          accessScope: "private",
+          chunks: { create: upload.chunks.map((chunkText, chunkIndex) => ({ chunkText, chunkIndex })) }
+        },
+        select: { id: true, title: true, originalFileName: true, mediaType: true, byteSize: true, createdAt: true, _count: { select: { chunks: true } } }
+      });
+      return reply.code(201).send({ document });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") return reply.code(409).send({ error: "This document has already been added to your private coach context." });
+      throw error;
+    }
+  });
+
+  app.delete("/public/coach-context-documents/:id", async (request, reply) => {
+    const user = await currentUser(request); const id = (request.params as { id: string }).id;
+    if (!user) return reply.code(401).send({ error: "Sign in to remove private coach context." });
+    const deleted = await prisma.coachContextDocument.deleteMany({ where: { id, userId: user.id, accessScope: "private" } });
+    if (!deleted.count) return reply.code(404).send({ error: "Private coach document not found." });
+    return { deleted: true, id };
   });
 
   app.get("/public/action-plan", async (request, reply) => {
@@ -589,6 +664,7 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
         : (body.data.messages ?? []);
       const modelMessages = recentConversation(priorMessages, latestQuestion);
       const retrievedContext = await retrieveHeairContext(profile.role, profile.scores, 6, retrievalQuery(priorMessages, latestQuestion));
+      const privateContext = await retrievePrivateCoachContext(user.id, 4, retrievalQuery(priorMessages, latestQuestion));
       const heairContext = formatHeairContext(retrievedContext);
       const system = coachSystemPrompt({
         profile: {
@@ -605,7 +681,8 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
         },
         roleLabel: roleLabel(profile.role),
         cohortContext: cohortContext(institutionComparison, profile.role),
-        researchContext: heairContext
+        researchContext: heairContext,
+        userContext: formatPrivateCoachContext(privateContext)
       });
       const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -621,7 +698,7 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
       const payload = await response.json() as { content?: Array<{ type: string; text?: string }> };
       const message = plainCoachReply(payload.content?.find((part) => part.type === "text")?.text?.trim() ?? "");
       if (!message) return reply.code(502).send({ error: "The AI coach returned no answer." });
-      const sources = [...new Map(retrievedContext.map((chunk) => [`${chunk.sourceTitle}:${chunk.section}`, { title: chunk.sourceTitle, section: chunk.section, citation: chunk.citation, publisher: chunk.publisher, publishedAt: chunk.publishedAt, sourceType: chunk.sourceType, reason: `Retrieved for ${chunk.section}.` }])).values()].slice(0, 3);
+      const sources = [...new Map([...retrievedContext, ...privateContext].map((chunk) => [`${chunk.sourceTitle}:${chunk.section}`, { title: chunk.sourceTitle, section: chunk.section, citation: chunk.citation, publisher: chunk.publisher, publishedAt: chunk.publishedAt, sourceType: chunk.sourceType, reason: `Retrieved for ${chunk.section}.` }])).values()].slice(0, 4);
       if (!conversation) conversation = await prisma.chatConversation.create({ data: { userId: user.id, assessmentSessionId: profile.session.id, title: body.data.title ?? latestQuestion.slice(0, 80), methodologyVersion: profile.methodology.version }, include: { messages: true } });
       await prisma.$transaction([
         prisma.chatMessage.create({ data: { conversationId: conversation.id, role: "user", content: latestQuestion } }),

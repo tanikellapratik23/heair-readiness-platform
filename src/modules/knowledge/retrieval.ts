@@ -4,6 +4,15 @@ import { PROJECT_HEARMES_SUB_DIMENSIONS } from "../../lib/instrument.js";
 
 type Score = { subDimension: string; dimension: string; score: number };
 type ChunkMetadata = { kind?: string; dimensionId?: string; subDimensionId?: string; roles?: string[] };
+export type RetrievedCoachContext = {
+  sourceTitle: string;
+  citation: string | null;
+  publisher: string | null;
+  publishedAt: string | null;
+  sourceType: string;
+  section: string;
+  text: string;
+};
 
 const legacySubDimensionIds: Record<string, string> = {
   "Policy & Compliance": "policy_compliance", "AI Governance & Access": "ai_governance_access", "Leadership & Resourcing": "leadership_resourcing", "Monitoring & Evaluation": "monitoring_evaluation",
@@ -80,4 +89,43 @@ export async function retrieveHeairContext(role: string, scores: Score[], limit 
 export function formatHeairContext(context: Awaited<ReturnType<typeof retrieveHeairContext>>) {
   if (!context.length) return "No Project HEARMES research source chunks were retrieved. Use only the supplied score profile and avoid unsupported claims.";
   return context.map((chunk, index) => `[Project HEARMES source ${index + 1}: ${chunk.sourceTitle}${chunk.citation ? ` — ${chunk.citation}` : ""}]\n${chunk.text.replaceAll("HEAIR", "Project HEARMES")}`).join("\n\n");
+}
+
+/**
+ * User uploads never enter the shared Project HEARMES corpus. Retrieval is
+ * deliberately scoped by userId and the upload is supplied to the coach as
+ * untrusted reference material, not as a set of instructions.
+ */
+export async function retrievePrivateCoachContext(userId: string, limit = 4, question = ""): Promise<RetrievedCoachContext[]> {
+  try {
+    const chunks = await prisma.coachContextChunk.findMany({
+      where: { document: { userId, accessScope: "private" } },
+      include: { document: { select: { title: true, originalFileName: true, updatedAt: true } } }
+    });
+    const terms = queryTerms(question);
+    return chunks
+      .map((chunk) => {
+        const lowerText = chunk.chunkText.toLocaleLowerCase();
+        const rank = Math.min(12, terms.reduce((total, term) => total + (lowerText.includes(term) ? 2 : 0), 0));
+        return { chunk, rank };
+      })
+      .sort((left, right) => right.rank - left.rank || right.chunk.document.updatedAt.getTime() - left.chunk.document.updatedAt.getTime() || left.chunk.chunkIndex - right.chunk.chunkIndex)
+      .slice(0, limit)
+      .map(({ chunk }) => ({
+        sourceTitle: chunk.document.title,
+        citation: null,
+        publisher: "Private coach context",
+        publishedAt: chunk.document.updatedAt.toISOString(),
+        sourceType: "private_user_upload",
+        section: "Your uploaded context",
+        text: chunk.chunkText
+      }));
+  } catch {
+    return [];
+  }
+}
+
+export function formatPrivateCoachContext(context: RetrievedCoachContext[]) {
+  if (!context.length) return "No private user-uploaded context is available.";
+  return context.map((chunk, index) => `[Private user-uploaded context ${index + 1}: ${chunk.sourceTitle}]\n${chunk.text.slice(0, 1_000)}`).join("\n\n");
 }

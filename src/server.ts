@@ -10,7 +10,9 @@ import { analyticsRoutes } from "./modules/analytics/routes.js";
 import { adminRoutes } from "./modules/admin/routes.js";
 import { publicRecommendationRoutes } from "./modules/recommendations/routes.js";
 
-const app = Fastify({ logger: true });
+// 2 MB private coach uploads are base64-encoded by the browser before they
+// reach this JSON API, so leave sufficient room for that encoding overhead.
+const app = Fastify({ logger: true, bodyLimit: 3 * 1024 * 1024 });
 await app.register(cors, { origin: true });
 await app.register(jwt, { secret: process.env.JWT_SECRET ?? "development-only-secret-change-me" });
 app.setErrorHandler((error, _request, reply) => {

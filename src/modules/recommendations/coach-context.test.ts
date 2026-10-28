@@ -46,11 +46,13 @@ describe("AI readiness coach conversation context", () => {
   });
 
   it("instructs the coach to be concise, profile-aware, and evidence-grounded", () => {
-    const prompt = coachSystemPrompt({ profile, roleLabel: "Student", cohortContext: "No peer data is available.", researchContext: "Research passage." });
+    const prompt = coachSystemPrompt({ profile, roleLabel: "Student", cohortContext: "No peer data is available.", researchContext: "Research passage.", userContext: "Department AI policy." });
     expect(prompt).toContain("one to three natural sentences");
     expect(prompt).toContain("Trust & Transparency");
     expect(prompt).toContain("Never invent scores");
     expect(prompt).toContain("prior conversation");
+    expect(prompt).toContain("Private user-uploaded context");
+    expect(prompt).toContain("Department AI policy.");
   });
 
   it("can build coach guidance when a profile has no scored details yet", () => {
