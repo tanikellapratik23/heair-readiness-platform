@@ -6,6 +6,8 @@ type Score = { subDimension: string; dimension: string; score: number };
 type ChunkMetadata = { kind?: string; dimensionId?: string; subDimensionId?: string; roles?: string[] };
 export type RetrievedCoachContext = {
   sourceTitle: string;
+  /** Original private-upload filename, retained only for the owner's citations. */
+  fileName?: string;
   citation: string | null;
   publisher: string | null;
   publishedAt: string | null;
@@ -113,6 +115,7 @@ export async function retrievePrivateCoachContext(userId: string, limit = 4, que
       .slice(0, limit)
       .map(({ chunk }) => ({
         sourceTitle: chunk.document.title,
+        fileName: chunk.document.originalFileName,
         citation: null,
         publisher: "Private coach context",
         publishedAt: chunk.document.updatedAt.toISOString(),

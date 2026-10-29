@@ -6,7 +6,7 @@ import { prisma } from "../../lib/prisma.js";
 import { formatHeairContext, formatPrivateCoachContext, retrieveHeairContext, retrievePrivateCoachContext } from "../knowledge/retrieval.js";
 import { COACH_CONTEXT_MAX_BYTES, COACH_CONTEXT_MAX_DOCUMENTS_PER_USER, parseCoachContextUpload } from "../knowledge/coach-context-documents.js";
 import { generatePublicAiReport } from "./anthropic.js";
-import { coachSystemPrompt, recentConversation, retrievalQuery, type CoachMessage } from "./coach-context.js";
+import { coachCitationSources, coachSystemPrompt, recentConversation, retrievalQuery, type CoachMessage } from "./coach-context.js";
 import { METHODOLOGY_VERSION, MINIMUM_PEER_RESPONDENTS, coverageFromCounts, isExcludedResponse, normalizeLikert, type AssessmentResponseValue } from "../../lib/assessment-methodology.js";
 import { ScoringService } from "../scoring/service.js";
 import { PROJECT_HEARMES_SUB_DIMENSIONS } from "../../lib/instrument.js";
@@ -701,7 +701,7 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
       const payload = await response.json() as { content?: Array<{ type: string; text?: string }> };
       const message = plainCoachReply(payload.content?.find((part) => part.type === "text")?.text?.trim() ?? "");
       if (!message) return reply.code(502).send({ error: "The AI coach returned no answer." });
-      const sources = [...new Map([...retrievedContext, ...privateContext].map((chunk) => [`${chunk.sourceTitle}:${chunk.section}`, { title: chunk.sourceTitle, section: chunk.section, citation: chunk.citation, publisher: chunk.publisher, publishedAt: chunk.publishedAt, sourceType: chunk.sourceType, reason: `Retrieved for ${chunk.section}.` }])).values()].slice(0, 4);
+      const sources = coachCitationSources(retrievedContext, privateContext);
       if (!conversation) conversation = await prisma.chatConversation.create({ data: { userId: user.id, assessmentSessionId: profile.session.id, title: body.data.title ?? latestQuestion.slice(0, 80), methodologyVersion: profile.methodology.version }, include: { messages: true } });
       await prisma.$transaction([
         prisma.chatMessage.create({ data: { conversationId: conversation.id, role: "user", content: latestQuestion } }),

@@ -610,7 +610,7 @@
         const item=document.createElement('div');item.className=`chat-message ${role} ${extraClass}`;
         const label=document.createElement('span');label.className='message-label';label.textContent=role==='user'?'You':'AI readiness coach';item.append(label);
         appendChatText(item,text,role==='assistant');
-        if(role==='assistant'&&sources.length){const sourceLine=document.createElement('div');sourceLine.className='chat-sources';sourceLine.append('Sources: ');sources.forEach((source,position)=>{if(position)sourceLine.append(' · ');const sourceLabel=[source.title,source.section].filter(Boolean).join(' — ');if(source.citation&&/^https?:\/\//.test(source.citation)){const link=document.createElement('a');link.href=source.citation;link.target='_blank';link.rel='noopener noreferrer';link.textContent=sourceLabel;sourceLine.append(link);}else sourceLine.append(sourceLabel);});item.append(sourceLine);}
+        if(role==='assistant'&&sources.length){const sourceLine=document.createElement('div');sourceLine.className='chat-sources';sourceLine.append('Sources: ');sources.forEach((source,position)=>{if(position)sourceLine.append(' · ');const sourceLabel=[source.fileName||source.title,source.section].filter(Boolean).join(' — ');if(source.citation&&/^https?:\/\//.test(source.citation)){const link=document.createElement('a');link.href=source.citation;link.target='_blank';link.rel='noopener noreferrer';link.textContent=sourceLabel;sourceLine.append(link);}else sourceLine.append(sourceLabel);});item.append(sourceLine);}
         $('chatMessages').append(item);scrollChatToLatest();return item;
       }
       function appendCoachThinking(){

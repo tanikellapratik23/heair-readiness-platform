@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coachSystemPrompt, recentConversation, retrievalQuery } from "./coach-context.js";
+import { coachCitationSources, coachSystemPrompt, recentConversation, retrievalQuery } from "./coach-context.js";
 
 const profile = {
   role: "student",
@@ -64,5 +64,15 @@ describe("AI readiness coach conversation context", () => {
     });
     expect(prompt).toContain("assessment-specific guidance from general practical guidance");
     expect(prompt).toContain('"scores":[]');
+  });
+
+  it("shows a retrieved private upload in the visible sources before research citations", () => {
+    const sources = coachCitationSources([
+      { sourceTitle: "Project HEARMES Research Foundation", section: "Policy & Compliance", citation: null, publisher: "Project HEARMES", publishedAt: null, sourceType: "heair_paper" }
+    ], [
+      { sourceTitle: "Department AI guidance", fileName: "department-ai-guidance.md", section: "Your uploaded context", citation: null, publisher: "Private coach context", publishedAt: "2026-10-28T00:00:00.000Z", sourceType: "private_user_upload" }
+    ]);
+    expect(sources[0]).toMatchObject({ title: "Department AI guidance", fileName: "department-ai-guidance.md", sourceType: "private_user_upload" });
+    expect(sources).toHaveLength(2);
   });
 });

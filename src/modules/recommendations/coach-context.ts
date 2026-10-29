@@ -3,6 +3,39 @@ export type CoachMessage = {
   content: string;
 };
 
+export type CoachRetrievalSource = {
+  sourceTitle: string;
+  fileName?: string;
+  section: string;
+  citation: string | null;
+  publisher: string | null;
+  publishedAt: string | null;
+  sourceType: string;
+};
+
+/**
+ * Keep citations compact, but give a private uploaded file priority whenever
+ * it was supplied to the model. Otherwise a six-item research retrieval can
+ * fill the four visible citation slots and hide the user's own document.
+ */
+export function coachCitationSources(research: CoachRetrievalSource[], privateContext: CoachRetrievalSource[]) {
+  const unique = new Map<string, CoachRetrievalSource>();
+  for (const source of [...privateContext, ...research]) {
+    const key = `${source.sourceType}:${source.fileName ?? source.sourceTitle}:${source.section}`;
+    if (!unique.has(key)) unique.set(key, source);
+  }
+  return [...unique.values()].slice(0, 4).map((source) => ({
+    title: source.sourceTitle,
+    fileName: source.fileName,
+    section: source.section,
+    citation: source.citation,
+    publisher: source.publisher,
+    publishedAt: source.publishedAt,
+    sourceType: source.sourceType,
+    reason: `Retrieved for ${source.section}.`
+  }));
+}
+
 export type CoachProfile = {
   role: string;
   institution: string;
