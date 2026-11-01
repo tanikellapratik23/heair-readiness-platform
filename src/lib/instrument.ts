@@ -204,7 +204,7 @@ export const PROJECT_HEARMES_METADATA_QUESTIONS: readonly InstrumentMetadataQues
     prompt: "Do you pay for an AI tool subscription?",
     helpText: "Select one.",
     questionType: "multiple_choice",
-    options: ["Yes, for one or more", "No, I use the enterprise tools offered by UNC Charlotte (e.g., Gemini, Copilot, NotebookLM)", "No, I use free versions only", "No, I do not use AI tools"],
+    options: ["Yes, for one or more", "No, I use the enterprise tools offered by my university (e.g., Gemini, Copilot, NotebookLM)", "No, I use free versions only", "No, I do not use AI tools"],
     includeInReadinessScore: false,
     includeInInstitutionDashboard: false,
     allowNotApplicable: false,
@@ -223,7 +223,7 @@ export const PROJECT_HEARMES_METADATA_QUESTIONS: readonly InstrumentMetadataQues
   },
   {
     id: "ai_training_formats",
-    prompt: "If UNC Charlotte offered AI training, which formats would you actually attend?",
+    prompt: "If your university offered AI training, which formats would you actually attend?",
     helpText: "Select all that apply.",
     questionType: "multi_select",
     options: ["A short online module I could complete on my own time", "A workshop through the library or a campus center", "A session built into a course I am already taking", "A semester-long elective course for credit", "A certificate program I could list on my resume", "Peer learning-based programs", "Webinars or town halls"],
