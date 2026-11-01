@@ -16,6 +16,7 @@
     "db:deploy": "prisma db push --skip-generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
+    "db:seed:coach-eval": "tsx prisma/seed-coach-evaluation.ts",
     "db:bootstrap": "tsx scripts/bootstrap.ts",
     "test": "vitest run --pool=forks --maxWorkers=1 --minWorkers=1"
   },
