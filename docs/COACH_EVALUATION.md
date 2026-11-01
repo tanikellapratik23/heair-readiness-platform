@@ -14,6 +14,22 @@ This works on Render's free compute plan; it does not require the paid Render Sh
    save. Removing the variable does **not** remove the accounts; it simply
    prevents a future accidental replacement run.
 
+### Reset the shared password if needed
+
+If the accounts already exist and the shared password is unknown or was typed
+incorrectly, temporarily set both of these Render environment variables before
+deploying:
+
+```text
+COACH_EVALUATION_PASSWORD=<new unique password of at least 12 characters>
+COACH_EVALUATION_RESET=true
+```
+
+This recreates only the twelve synthetic evaluation accounts and changes them
+to the new password. It also clears **only their** prior evaluation chats,
+uploaded private context, action-plan items, assessments, and reports. Remove
+both variables after the deployment succeeds.
+
 If the accounts already exist with a completed assessment, an ordinary restart
 makes no changes. The manual command below is only for an intentional clean
 replacement of the synthetic evaluation set:

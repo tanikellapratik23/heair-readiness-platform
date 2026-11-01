@@ -33,8 +33,9 @@ await app.register(publicRecommendationRoutes);
 // accounts during a deployment. Later starts detect the completed set and do
 // nothing, so evaluation conversations are not reset.
 if (process.env.COACH_EVALUATION_PASSWORD) {
-  const result = await seedCoachEvaluationAccounts(process.env.COACH_EVALUATION_PASSWORD, "ensure");
-  app.log.info({ created: result.created, accountCount: result.accountCount }, "Coach-evaluation accounts checked");
+  const reset = process.env.COACH_EVALUATION_RESET === "true";
+  const result = await seedCoachEvaluationAccounts(process.env.COACH_EVALUATION_PASSWORD, reset ? "replace" : "ensure");
+  app.log.info({ created: result.created, reset, accountCount: result.accountCount }, "Coach-evaluation accounts checked");
 }
 
 const port = Number(process.env.PORT ?? 3000);
