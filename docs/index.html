@@ -48,6 +48,35 @@
       .university-subdimension .mini-bar { height:9px; margin-top:13px; background:#e6edf8; }
       .university-subdimension .mini-bar i { background:linear-gradient(90deg,#3479ec,#68a4ee); }
 
+      /* A scan-friendly university dashboard: the four dimensions and the
+         lowest three areas are visible immediately; all 17 values are tucked
+         behind an intentional disclosure rather than creating a long wall of
+         identical progress bars. */
+      .university-dashboard { padding:22px; }
+      .university-dashboard-summary { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(235px,.65fr); gap:14px; margin-top:19px; }
+      .university-section-label { display:block; margin:0 0 9px; color:#31558a; font-size:11px; font-weight:850; letter-spacing:.08em; text-transform:uppercase; }
+      .university-dimension-summary { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+      .university-dimension { display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:73px; padding:13px 14px; border:1px solid #d6e3f4; border-radius:12px; background:#fff; }
+      .university-dimension b { max-width:66%; color:#304866; font-size:12px; line-height:1.3; }
+      .university-dimension strong,.university-priority-list b { flex:0 0 auto; color:#245bbb; font-size:21px; letter-spacing:-.05em; white-space:nowrap; }
+      .university-dimension small,.university-priority-list small { margin-left:2px; color:#6b7e98; font-size:10px; font-weight:800; letter-spacing:0; }
+      .university-priorities { padding:14px; border:1px solid #c9ddf8; border-radius:12px; background:linear-gradient(145deg,#edf5ff,#f9fbff); }
+      .university-priorities p { margin:0 0 10px; color:#617590; font-size:11px; line-height:1.45; }
+      .university-priority-list { display:grid; gap:7px; margin:0; padding:0; list-style:none; counter-reset:university-priority; }
+      .university-priority-list li { display:flex; align-items:center; justify-content:space-between; gap:9px; padding:8px 0 8px 26px; border-top:1px solid #d9e6f6; color:#304866; font-size:12px; font-weight:800; line-height:1.3; position:relative; }
+      .university-priority-list li:first-child { border-top:0; }
+      .university-priority-list li:before { counter-increment:university-priority; content:counter(university-priority); position:absolute; left:0; top:8px; display:grid; place-items:center; width:18px; height:18px; border-radius:50%; background:#dceaff; color:#245bbb; font-size:10px; font-weight:900; }
+      .university-priority-list b { font-size:15px; }
+      .university-all-details { margin-top:14px; border-top:1px solid #d8e4f4; }
+      .university-all-details summary { display:flex; align-items:center; justify-content:space-between; padding:14px 2px 2px; color:#285aa9; cursor:pointer; font-size:13px; font-weight:850; list-style:none; }
+      .university-all-details summary::-webkit-details-marker { display:none; }
+      .university-all-details summary:after { content:'+'; display:grid; place-items:center; width:21px; height:21px; border:1px solid #c9daf1; border-radius:50%; font-size:16px; line-height:1; }
+      .university-all-details[open] summary:after { content:'–'; }
+      .university-all-details .university-subdimensions { grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:13px; }
+      .university-all-details .university-subdimension { display:flex; align-items:start; justify-content:space-between; gap:8px; min-height:0; padding:11px; }
+      .university-all-details .university-subdimension b { min-height:0; max-width:72%; color:#435a78; font-size:11px; line-height:1.3; }
+      .university-all-details .university-subdimension span { margin:0; color:#245bbb; font-size:13px; font-weight:850; letter-spacing:-.02em; white-space:nowrap; }
+
       .priority button.secondary { margin-top:14px; padding:10px 13px; background:#fff0cb; color:#965f00; border:1px solid #e7c879; box-shadow:none; }
       .priority button.secondary:hover { background:#ffe8aa; color:#714600; }
       .priority button.secondary:disabled { opacity:1; background:#f2e8cb; color:#786849; cursor:default; }
@@ -70,7 +99,7 @@
       .dimension-comment textarea { display:block; width:100%; max-width:none; margin:12px 0 0; padding:13px 14px; border:1px solid #bdcfe8; border-radius:12px; background:#fff; color:var(--ink); font:inherit; line-height:1.5; }
       .dimension-comment textarea:focus { outline:3px solid #8dbbff66; border-color:#3978d5; }
       .dimension-comment p { margin:9px 0 0; color:#637795; }
-      @media (max-width:700px) { .university-subdimensions { grid-template-columns:1fr; } }
+      @media (max-width:700px) { .university-dashboard-summary { grid-template-columns:1fr; } .university-all-details .university-subdimensions { grid-template-columns:repeat(2,minmax(0,1fr)); } }
       @media (max-width:760px) { .response-options,.metadata-options { grid-column:span 2; grid-template-columns:1fr; } #confirmPasswordField { margin-bottom:20px; } }
       /* Conversational coach refinements. Kept here so they cleanly override the
          compact legacy chat rules without changing the established visual system. */
@@ -175,7 +204,8 @@
                 <section id="universityDashboard" class="university-dashboard hidden" aria-label="University AI readiness dashboard">
                   <div class="university-dashboard-head"><div><span id="universityDashboardEyebrow" class="eyebrow">University dashboard</span><h3 id="universityDashboardTitle">University AI readiness</h3><p id="universityDashboardDescription"></p></div><div class="university-dashboard-score"><b id="universityDashboardScore"></b><span id="universityDashboardScoreLabel">average readiness</span></div></div>
                   <p id="universityDashboardNotice" class="university-dashboard-notice hidden"></p>
-                  <div id="universitySubdimensions" class="university-subdimensions"></div>
+                  <div class="university-dashboard-summary"><div><span class="university-section-label">Four readiness dimensions</span><div id="universityDimensionSummary" class="university-dimension-summary"></div></div><aside class="university-priorities"><span class="university-section-label">Focus areas</span><p>Three lower-scoring areas across the university’s latest completed assessments.</p><ol id="universityPriorityAreas" class="university-priority-list"></ol></aside></div>
+                  <details class="university-all-details"><summary>View all 17 readiness subdimensions</summary><div id="universitySubdimensions" class="university-subdimensions"></div></details>
                 </section>
                 <div class="account-actions"><button onclick="beginNewAssessment()">Start a new assessment</button><button class="secondary" onclick="signOut()">Sign out</button></div>
               </div>
@@ -333,15 +363,19 @@
         $('universityDashboard')?.classList.add('hidden');
       }
       function renderUniversityDashboard(insight){
-        const dashboard=$('universityDashboard'),subDimensions=Array.isArray(insight?.subDimensions)?insight.subDimensions:[];
-        if(!insight?.available||typeof insight.averageScore!=='number'||!subDimensions.length){dashboard.classList.add('hidden');return;}
+        const dashboard=$('universityDashboard'),subDimensions=Array.isArray(insight?.subDimensions)?insight.subDimensions:[],dimensions=Array.isArray(insight?.dimensions)?insight.dimensions:[];
+        if(!insight?.available||typeof insight.averageScore!=='number'||!subDimensions.length||!dimensions.length){dashboard.classList.add('hidden');return;}
         $('universityDashboardEyebrow').textContent='University dashboard';
         $('universityDashboardTitle').textContent=`${insight.institutionName||'Your university'} AI readiness`;
-        $('universityDashboardDescription').textContent='Aggregate readiness across the latest completed assessment from each person at your university.';
+        const respondentCount=Number(insight.eligibleResponseCount)||0;
+        $('universityDashboardDescription').textContent=`Aggregate readiness across the latest completed assessment from ${respondentCount||'each'} person${respondentCount===1?'':'s'} at your university.`;
         $('universityDashboardScore').textContent=`${Number(insight.averageScore).toFixed(1)} / 100`;
         $('universityDashboardScoreLabel').textContent='average readiness';
         $('universityDashboardNotice').classList.add('hidden');
-        $('universitySubdimensions').innerHTML=subDimensions.map(item=>{const score=Math.max(0,Math.min(100,Number(item.averageScore)||0));return `<article class="university-subdimension"><div class="university-subdimension-head"><b>${esc(item.subDimension)}</b><span>${score.toFixed(1)} / 100</span></div><div class="mini-bar" role="img" aria-label="${esc(item.subDimension)} average readiness: ${score.toFixed(1)} out of 100"><i style="width:${score}%"></i></div><p>Latest completed responses across your university.</p></article>`;}).join('');
+        $('universityDimensionSummary').innerHTML=dimensions.map(item=>{const score=Math.max(0,Math.min(100,Number(item.averageScore)||0));return `<article class="university-dimension"><b>${esc(item.dimension)}</b><strong>${score.toFixed(0)}<small>/100</small></strong></article>`;}).join('');
+        const focusAreas=[...subDimensions].sort((left,right)=>Number(left.averageScore)-Number(right.averageScore)).slice(0,3);
+        $('universityPriorityAreas').innerHTML=focusAreas.map(item=>{const score=Math.max(0,Math.min(100,Number(item.averageScore)||0));return `<li><span>${esc(item.subDimension)}</span><b>${score.toFixed(0)}<small>/100</small></b></li>`;}).join('');
+        $('universitySubdimensions').innerHTML=[...subDimensions].sort((left,right)=>Number(left.averageScore)-Number(right.averageScore)).map(item=>{const score=Math.max(0,Math.min(100,Number(item.averageScore)||0));return `<article class="university-subdimension"><b>${esc(item.subDimension)}</b><span>${score.toFixed(1)} / 100</span></article>`;}).join('');
         dashboard.classList.remove('hidden');
       }
       async function loadUniversityReadinessInsight(){
