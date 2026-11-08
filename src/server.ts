@@ -10,6 +10,7 @@ import { analyticsRoutes } from "./modules/analytics/routes.js";
 import { adminRoutes } from "./modules/admin/routes.js";
 import { publicRecommendationRoutes } from "./modules/recommendations/routes.js";
 import { seedCoachEvaluationAccounts } from "../prisma/seed-coach-evaluation.js";
+import { removeUncCharlotteDemoComparisons, seedUncCharlotteDemoComparisons } from "../prisma/seed-unc-charlotte-demo-comparisons.js";
 
 // 2 MB private coach uploads are base64-encoded by the browser before they
 // reach this JSON API, so leave sufficient room for that encoding overhead.
@@ -36,6 +37,20 @@ if (process.env.COACH_EVALUATION_PASSWORD) {
   const reset = process.env.COACH_EVALUATION_RESET === "true";
   const result = await seedCoachEvaluationAccounts(process.env.COACH_EVALUATION_PASSWORD, reset ? "replace" : "ensure");
   app.log.info({ created: result.created, reset, accountCount: result.accountCount }, "Coach-evaluation accounts checked");
+}
+
+// This is an explicit, temporary demo switch—not normal production seeding.
+// It creates clearly labelled synthetic records under UNC Charlotte so every
+// stakeholder comparison can be demonstrated. Set it to "remove" to delete
+// only these exact synthetic accounts before collecting or exporting real data.
+const uncCharlotteDemoMode = process.env.UNC_CHARLOTTE_DEMO_COMPARISONS;
+if (uncCharlotteDemoMode === "true") {
+  const reset = process.env.UNC_CHARLOTTE_DEMO_COMPARISONS_RESET === "true";
+  const result = await seedUncCharlotteDemoComparisons(reset ? "replace" : "ensure");
+  app.log.warn({ created: result.created, reset, accountCount: result.accountCount, accountsPerRole: result.accountsPerRole }, "UNC Charlotte synthetic demo comparison data checked");
+} else if (uncCharlotteDemoMode === "remove") {
+  const result = await removeUncCharlotteDemoComparisons();
+  app.log.warn(result, "UNC Charlotte synthetic demo comparison data removed");
 }
 
 const port = Number(process.env.PORT ?? 3000);

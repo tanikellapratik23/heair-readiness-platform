@@ -143,7 +143,7 @@ function dimensionAverages(scores: ScoreProfileItem[]) {
   return new Map([...grouped].map(([dimension, values]) => [dimension, average(values)]));
 }
 
-async function getInstitutionComparison(institutionId: string | null, institutionName: string | null, role: string | null, score: number, currentScores: ScoreProfileItem[] = []): Promise<InstitutionComparison> {
+async function getInstitutionComparison(institutionId: string | null, institutionName: string | null, role: string | null, score: number, currentScores: ScoreProfileItem[], currentUserId: string): Promise<InstitutionComparison> {
   const unavailable = { available: false, institutionName, sampleSize: 0, averageScore: null, difference: null, dimensions: [], methodologyVersion: METHODOLOGY_VERSION };
   if (!institutionId || !role || !activeAssessmentRoles.includes(role as (typeof activeAssessmentRoles)[number])) return unavailable;
   const sessions = await prisma.assessmentSession.findMany({
@@ -157,7 +157,10 @@ async function getInstitutionComparison(institutionId: string | null, institutio
   // One current result per account prevents repeat attempts from affecting a cohort average.
   const latestByUser = new Map<string, (typeof sessions)[number]>();
   for (const session of sessions) if (!latestByUser.has(session.userId)) latestByUser.set(session.userId, session);
-  const latestSessions = [...latestByUser.values()].filter((session) => Boolean(session.scoreResult));
+  // A person must never be counted as their own peer. The public interface
+  // describes these as "other" results, and excluding the current account is
+  // also important for the minimum-cohort privacy threshold.
+  const latestSessions = [...latestByUser.values()].filter((session) => Boolean(session.scoreResult) && session.userId !== currentUserId);
   if (latestSessions.length < minimumCohortRespondents) return { ...unavailable, sampleSize: latestSessions.length };
 
   const cohortScores = latestSessions.map((session) => Number(session.scoreResult!.overallScore));
@@ -415,7 +418,7 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
         assessmentResponses,
         dimensionComments: session.dimensionComments.map((comment) => ({ dimensionId: comment.dimensionId, dimension: comment.dimension.label, text: comment.text })),
         report: session.report ? { summary: session.report.summaryText, data: session.report.structuredData, recommendations: session.report.recommendations.map((recommendation) => ({ ...recommendation, citationSources: recommendation.supportingCitationIds.map((id) => citationsById.get(id)).filter(Boolean) })) } : null,
-        institutionComparison: overallScore === null ? null : await getInstitutionComparison(user.institutionId, user.institution?.name ?? null, session.roleAtTime, overallScore, scores)
+        institutionComparison: overallScore === null ? null : await getInstitutionComparison(user.institutionId, user.institution?.name ?? null, session.roleAtTime, overallScore, scores, user.id)
       };
     }));
     return {
@@ -436,7 +439,7 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
       if (existing) {
         if (existing.userId !== user.id) return reply.code(403).send({ error: "This submission does not belong to your account." });
         const scores = existing.scoreResult?.subDimensionScores.map((score) => ({ subDimension: score.subDimension.label, dimension: score.subDimension.dimension.label, score: Number(score.score) })) ?? [];
-        return { sessionId: existing.id, scoreResultId: existing.scoreResult?.id, alreadySaved: true, institutionComparison: existing.scoreResult ? await getInstitutionComparison(user.institutionId, user.institution?.name ?? null, existing.roleAtTime, Number(existing.scoreResult.overallScore), scores) : null };
+        return { sessionId: existing.id, scoreResultId: existing.scoreResult?.id, alreadySaved: true, institutionComparison: existing.scoreResult ? await getInstitutionComparison(user.institutionId, user.institution?.name ?? null, existing.roleAtTime, Number(existing.scoreResult.overallScore), scores, user.id) : null };
       }
     }
     const questions = await prisma.question.findMany({ where: { role: body.data.role, active: true, sessionScoped: false }, select: { id: true, instrumentKey: true, subDimensionId: true } });
@@ -464,7 +467,7 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
     const savedScores = scored.subDimensionScores.map((score) => ({ subDimension: score.subDimension.label, dimension: score.subDimension.dimension.label, score: Number(score.score) }));
     const report = toSavedReport(body.data.report);
     await prisma.readinessReport.create({ data: { sessionId: session.id, overallScore: scored.overallScore, summaryText: report.summaryText, structuredData: { ...body.data.report, methodologyVersion: METHODOLOGY_VERSION }, recommendations: report.recommendations } });
-    const institutionComparison = await getInstitutionComparison(user.institutionId, user.institution?.name ?? null, body.data.role, Number(scored.overallScore), savedScores);
+    const institutionComparison = await getInstitutionComparison(user.institutionId, user.institution?.name ?? null, body.data.role, Number(scored.overallScore), savedScores, user.id);
     const readinessQuestionCount = questions.filter((question) => question.subDimensionId !== null).length;
     const readinessResponses = questions.filter((question) => question.subDimensionId !== null).map((question) => rawByQuestionId.get(question.id));
     const coverage = coverageFromCounts({ totalQuestions: readinessQuestionCount, answered: readinessResponses.length, scored: savedScores.length, excluded: readinessResponses.filter((value) => value !== undefined && isExcludedResponse(value)).length });
@@ -661,7 +664,7 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
           sources: []
         };
       }
-      const institutionComparison = await getInstitutionComparison(user.institutionId, user.institution.name, profile.role, profile.overallScore, profile.scores);
+      const institutionComparison = await getInstitutionComparison(user.institutionId, user.institution.name, profile.role, profile.overallScore, profile.scores, user.id);
       const priorMessages: CoachMessage[] = conversation
         ? [...conversation.messages].reverse().map((message) => ({ role: message.role === "assistant" ? "assistant" as const : "user" as const, content: message.content }))
         : (body.data.messages ?? []);
