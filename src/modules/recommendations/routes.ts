@@ -43,6 +43,7 @@ const profileInput = z.object({
   role: assessmentRole.optional(),
   institutionName: z.string().trim().min(2).max(180).optional()
 }).refine((value) => Boolean(value.role || value.institutionName), { message: "Provide an account setting." });
+const stakeholderCohortQuery = z.object({ role: assessmentRole.optional() });
 const actionPlanInput = z.object({
   title: z.string().trim().min(1).max(180),
   whyItMatters: z.string().trim().min(1).max(1200),
@@ -245,6 +246,94 @@ async function getUniversityReadinessInsight(institutionId: string | null, insti
   };
 }
 
+function likertChoice(value: unknown) {
+  const raw = value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>).value : value;
+  return typeof raw === "number" && Number.isInteger(raw) && raw >= 1 && raw <= 5 ? raw : null;
+}
+
+/**
+ * Role-specific, anonymous aggregate view for a signed-in person. It uses the
+ * same latest-result and five-*other*-people rule as the report comparison;
+ * no names, account IDs, comments, or individual answers leave this endpoint.
+ */
+async function getStakeholderCohortDetails(institutionId: string | null, institutionName: string | null, role: (typeof activeAssessmentRoles)[number], currentUserId: string) {
+  const unavailable = { available: false, institutionName, role, participantCount: 0, minimumRequired: minimumCohortRespondents, overallAverage: null, dimensions: [], subDimensions: [], questions: [] };
+  if (!institutionId) return unavailable;
+  const sessions = await prisma.assessmentSession.findMany({
+    where: { status: "completed", roleAtTime: role, user: { institutionId }, scoreResult: { isNot: null } },
+    orderBy: { completedAt: "desc" },
+    select: {
+      id: true,
+      userId: true,
+      scoreResult: {
+        select: {
+          overallScore: true,
+          dimensionScores: { select: { score: true, dimension: { select: { label: true, sortOrder: true } } } },
+          subDimensionScores: { select: { score: true, subDimension: { select: { label: true, sortOrder: true, dimension: { select: { label: true, sortOrder: true } } } } } },
+        },
+      },
+      responses: {
+        where: { question: { subDimensionId: { not: null } } },
+        select: {
+          responseValue: true,
+          question: { select: { instrumentKey: true, prompt: true, metricType: true, subDimension: { select: { label: true, sortOrder: true, dimension: { select: { label: true, sortOrder: true } } } } } },
+        },
+      },
+    },
+  });
+  const latestByUser = new Map<string, (typeof sessions)[number]>();
+  for (const session of sessions) if (!latestByUser.has(session.userId)) latestByUser.set(session.userId, session);
+  const cohort = [...latestByUser.values()].filter((session) => session.userId !== currentUserId && Boolean(session.scoreResult));
+  if (cohort.length < minimumCohortRespondents) return { ...unavailable, participantCount: cohort.length };
+
+  const dimensionValues = new Map<string, { sortOrder: number; scores: number[] }>();
+  const subDimensionValues = new Map<string, { dimension: string; dimensionSortOrder: number; sortOrder: number; scores: number[] }>();
+  const questionValues = new Map<string, { prompt: string; metricType: string | null; subDimension: string; dimension: string; dimensionSortOrder: number; subDimensionSortOrder: number; values: number[] }>();
+  for (const session of cohort) {
+    for (const score of session.scoreResult!.dimensionScores) {
+      const row = dimensionValues.get(score.dimension.label) ?? { sortOrder: score.dimension.sortOrder, scores: [] };
+      row.scores.push(Number(score.score)); dimensionValues.set(score.dimension.label, row);
+    }
+    for (const score of session.scoreResult!.subDimensionScores) {
+      const row = subDimensionValues.get(score.subDimension.label) ?? { dimension: score.subDimension.dimension.label, dimensionSortOrder: score.subDimension.dimension.sortOrder, sortOrder: score.subDimension.sortOrder, scores: [] };
+      row.scores.push(Number(score.score)); subDimensionValues.set(score.subDimension.label, row);
+    }
+    for (const response of session.responses) {
+      const value = likertChoice(response.responseValue);
+      const subDimension = response.question.subDimension;
+      if (!subDimension || value === null) continue;
+      const key = response.question.instrumentKey ?? response.question.prompt;
+      const row = questionValues.get(key) ?? { prompt: response.question.prompt, metricType: response.question.metricType, subDimension: subDimension.label, dimension: subDimension.dimension.label, dimensionSortOrder: subDimension.dimension.sortOrder, subDimensionSortOrder: subDimension.sortOrder, values: [] };
+      row.values.push(value); questionValues.set(key, row);
+    }
+  }
+  const averageScore = (values: number[]) => rounded(average(values));
+  return {
+    available: true,
+    institutionName,
+    role,
+    participantCount: cohort.length,
+    minimumRequired: minimumCohortRespondents,
+    overallAverage: averageScore(cohort.map((session) => Number(session.scoreResult!.overallScore))),
+    dimensions: [...dimensionValues.entries()].map(([dimension, row]) => ({ dimension, averageScore: averageScore(row.scores), sortOrder: row.sortOrder })).sort((left, right) => left.sortOrder - right.sortOrder),
+    subDimensions: [...subDimensionValues.entries()].map(([subDimension, row]) => ({ subDimension, dimension: row.dimension, averageScore: averageScore(row.scores), dimensionSortOrder: row.dimensionSortOrder, sortOrder: row.sortOrder })).sort((left, right) => left.dimensionSortOrder - right.dimensionSortOrder || left.sortOrder - right.sortOrder),
+    // Suppress a question when fewer than the privacy threshold supplied a
+    // scorable answer, even if the overall cohort is large enough.
+    questions: [...questionValues.values()].filter((row) => row.values.length >= minimumCohortRespondents).map((row) => ({
+      prompt: row.prompt,
+      metricType: row.metricType,
+      subDimension: row.subDimension,
+      dimension: row.dimension,
+      dimensionSortOrder: row.dimensionSortOrder,
+      subDimensionSortOrder: row.subDimensionSortOrder,
+      responseCount: row.values.length,
+      averageResponse: averageScore(row.values),
+      averageScore: averageScore(row.values.map((value) => (value - 1) * 25)),
+      distribution: [1, 2, 3, 4, 5].map((value) => ({ value, count: row.values.filter((response) => response === value).length })),
+    })).sort((left, right) => left.dimensionSortOrder - right.dimensionSortOrder || left.subDimensionSortOrder - right.subDimensionSortOrder),
+  };
+}
+
 function roleLabel(role: string) {
   return ({ student: "Student", faculty: "Faculty", executive_leadership: "Executive Leadership", administrative_staff: "Administrative Staff", programming_staff: "Programming Staff", finance_staff: "Finance Staff", leadership: "Executive Leadership", business_affairs: "Administrative Staff", it_staff: "Programming Staff", communications: "Programming Staff" } as Record<string, string>)[role] ?? role;
 }
@@ -340,6 +429,17 @@ export async function publicRecommendationRoutes(app: FastifyInstance) {
     const user = await currentUser(request);
     if (!user) return reply.code(401).send({ error: "Sign in to view university readiness." });
     return getUniversityReadinessInsight(user.institutionId, user.institution?.name ?? null);
+  });
+
+  app.get("/public/stakeholder-readiness", async (request, reply) => {
+    const user = await currentUser(request);
+    if (!user) return reply.code(401).send({ error: "Sign in to view stakeholder comparison details." });
+    const query = stakeholderCohortQuery.safeParse(request.query);
+    if (!query.success) return reply.code(400).send({ error: "Choose a valid stakeholder group." });
+    const role = query.data.role ?? user.role;
+    if (!role || !activeAssessmentRoles.includes(role as (typeof activeAssessmentRoles)[number])) return reply.code(400).send({ error: "Choose an active stakeholder role." });
+    if (!user.stakeholderRoles.some((savedRole) => savedRole.role === role)) return reply.code(403).send({ error: "This stakeholder group is not enabled for your account." });
+    return getStakeholderCohortDetails(user.institutionId, user.institution?.name ?? null, role as (typeof activeAssessmentRoles)[number], user.id);
   });
 
   app.patch("/public/profile", async (request, reply) => {
