@@ -555,8 +555,24 @@
         $('yourCohortDifference').textContent=`${Math.abs(difference).toFixed(1)} points ${direction} the cohort average`;
         $('cohortAverageLabel').textContent=`${displayRole(scoreContext.role)} average`;
         $('cohortAverageScore').textContent=`${Number(comparison.averageScore).toFixed(1)} / 100`;
-        $('cohortDimensions').innerHTML=(comparison.dimensions||[]).map(item=>{const difference=Number(item.difference||0),direction=difference>0?'above':difference<0?'below':'in line with';return `<article class="cohort-dimension"><b>${esc(item.dimension)}</b><p><strong>You ${Number(item.userScore).toFixed(0)}</strong> · Cohort ${Number(item.averageScore).toFixed(0)}</p><p>${Math.abs(difference).toFixed(0)} points ${direction}</p></article>`;}).join('');$('cohortDetailsButton').textContent=`View ${displayRole(scoreContext.role)} comparison details`;$('cohortActions').classList.remove('hidden');
+        $('cohortDimensions').innerHTML=(comparison.dimensions||[]).map(item=>{const difference=Number(item.difference||0),direction=difference>0?'above':difference<0?'below':'in line with';return `<article class="cohort-dimension"><b>${esc(item.dimension)}</b><p><strong>You ${Number(item.userScore).toFixed(0)}</strong> · Cohort ${Number(item.averageScore).toFixed(0)}</p><p>${Math.abs(difference).toFixed(0)} points ${direction}</p></article>`;}).join('');$('cohortActions').classList.add('hidden');void showCohortDetailsWhenAvailable();
         holder.classList.remove('hidden');
+      }
+      async function showCohortDetailsWhenAvailable(){
+        const role=legacyRoleMap[scoreContext?.role]||scoreContext?.role,assessmentId=scoreContext?.assessmentId;
+        if(!role||!authToken)return;
+        try{
+          const details=await api(`/public/stakeholder-readiness?role=${encodeURIComponent(role)}`);
+          // A user can open another saved result while this check is in flight.
+          // Do not reveal the link for the wrong report in that case.
+          const currentRole=legacyRoleMap[scoreContext?.role]||scoreContext?.role;
+          if(assessmentId!==scoreContext?.assessmentId||role!==currentRole||!details?.available)return;
+          $('cohortDetailsButton').textContent=`View ${displayRole(role)} comparison details`;
+          $('cohortActions').classList.remove('hidden');
+        }catch{
+          // Older or unavailable backends simply omit the optional page link.
+          $('cohortActions').classList.add('hidden');
+        }
       }
       function openStakeholderComparison(){const role=legacyRoleMap[scoreContext?.role]||scoreContext?.role;if(!role)return;window.location.href=`stakeholder-comparison.html?role=${encodeURIComponent(role)}`;}
       function assessmentReviewEntries(){
