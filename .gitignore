@@ -11,3 +11,11 @@ __pycache__/
 *.pyc
 node_modules/
 .env
+
+# Approved research sources and generated retrieval artifacts are imported
+# locally or on approved infrastructure; never commit them to the public repo.
+research-inputs/
+research-artifacts/
+*.artifact.json
+*.slurm.out
+*.slurm.err

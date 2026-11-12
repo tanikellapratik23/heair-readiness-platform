@@ -22,3 +22,19 @@ Want to see how AI-ready your organization is?
 - **Interactive Assessment Interface**: Role-adaptive diagnostic hosted via GitHub Pages.
 - **AI Score Coaching Chat**: Real-time, context-aware AI coaching and personalized feedback based on user scores.
 - **Modular Architecture**: Scalable routing system designed for fast evaluation and seamless integration.
+
+---
+
+## Importing an approved HEAIR paper into Coach retrieval
+
+The live Coach starts with a compact curated HEAIR framework corpus. To add an approved full paper to the existing Neon/PostgreSQL retrieval path, extract its text locally, review the page text, then run the explicit admin import. The PDF, extracted text, and generated inputs are intentionally ignored by Git.
+
+```sh
+# On a trusted machine with the database connection configured.
+python3 -m pip install pypdf
+python3 scripts/extract-heair-pdf.py /absolute/path/HEAIR.pdf /private/path/heair-pages.json
+npm run knowledge:import:heair-paper -- --input /private/path/heair-pages.json --dry-run
+npm run knowledge:import:heair-paper -- --input /private/path/heair-pages.json
+```
+
+The importer replaces the prior full-paper import with a deterministic set of page-aware chunks. It does not alter assessment scores, user data, or the existing 13 curated framework chunks. Verify several Coach queries and their displayed page/section citations before treating the full paper as production-ready.

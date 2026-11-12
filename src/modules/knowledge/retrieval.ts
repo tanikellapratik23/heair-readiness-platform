@@ -3,7 +3,7 @@ import { HEAIR_SOURCE_TITLE } from "./heair-framework.js";
 import { PROJECT_HEARMES_SUB_DIMENSIONS } from "../../lib/instrument.js";
 
 type Score = { subDimension: string; dimension: string; score: number };
-type ChunkMetadata = { kind?: string; dimensionId?: string; subDimensionId?: string; roles?: string[] };
+type ChunkMetadata = { kind?: string; dimensionId?: string; subDimensionId?: string; roles?: string[]; page?: number; section?: string };
 export type RetrievedCoachContext = {
   sourceTitle: string;
   /** Original private-upload filename, retained only for the owner's citations. */
@@ -79,7 +79,7 @@ export async function retrieveHeairContext(role: string, scores: Score[], limit 
       publisher: chunk.document.publisher,
       publishedAt: chunk.document.publishedAt?.toISOString() ?? null,
       sourceType: chunk.document.sourceType,
-      section: ((chunk.metadata as ChunkMetadata | null)?.subDimensionId && subDimensionLabels[(chunk.metadata as ChunkMetadata).subDimensionId!]) || "Project HEARMES research foundation",
+      section: (chunk.metadata as ChunkMetadata | null)?.section || ((chunk.metadata as ChunkMetadata | null)?.subDimensionId && subDimensionLabels[(chunk.metadata as ChunkMetadata).subDimensionId!]) || "Project HEARMES research foundation",
       text: chunk.chunkText
     }));
   } catch {

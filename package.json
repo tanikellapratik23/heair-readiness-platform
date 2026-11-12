@@ -19,6 +19,7 @@
     "db:seed:coach-eval": "tsx prisma/seed-coach-evaluation.ts",
     "db:seed:unc-charlotte-demo-comparisons": "tsx prisma/seed-unc-charlotte-demo-comparisons.ts",
     "db:bootstrap": "tsx scripts/bootstrap.ts",
+    "knowledge:import:heair-paper": "tsx scripts/import-heair-paper.ts",
     "test": "vitest run --pool=forks --maxWorkers=1 --minWorkers=1"
   },
   "dependencies": {
