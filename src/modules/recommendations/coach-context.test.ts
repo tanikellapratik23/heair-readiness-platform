@@ -52,6 +52,8 @@ describe("AI readiness coach conversation context", () => {
     expect(prompt).toContain("Never invent scores");
     expect(prompt).toContain("prior conversation");
     expect(prompt).toContain("Private user-uploaded context");
+    expect(prompt).toContain("Do not narrate your retrieval process");
+    expect(prompt).toContain("PDF page N");
     expect(prompt).toContain("Department AI policy.");
   });
 

@@ -101,7 +101,10 @@ export async function retrieveHeairContext(role: string, scores: Score[], limit 
 
 export function formatHeairContext(context: Awaited<ReturnType<typeof retrieveHeairContext>>) {
   if (!context.length) return "No Project HEARMES research source chunks were retrieved. Use only the supplied score profile and avoid unsupported claims.";
-  return context.map((chunk, index) => `[Project HEARMES source ${index + 1}: ${chunk.sourceTitle}${chunk.citation ? ` — ${chunk.citation}` : ""}]\n${chunk.text.replaceAll("HEAIR", "Project HEARMES")}`).join("\n\n");
+  // Include the page/section label in the model-visible provenance. The UI
+  // already displays it, but the Coach also needs it to answer a natural
+  // "where in the paper?" follow-up without pretending it lacks a page.
+  return context.map((chunk, index) => `[Project HEARMES source ${index + 1}: ${chunk.sourceTitle} — ${chunk.section}${chunk.citation ? ` — ${chunk.citation}` : ""}]\n${chunk.text.replaceAll("HEAIR", "Project HEARMES")}`).join("\n\n");
 }
 
 /**
