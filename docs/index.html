@@ -112,6 +112,15 @@
       .coach-typing-orbs i:nth-child(3) { animation-delay:.32s; }
       .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
       @keyframes coach-breathe { 0%,100% { transform:scale(.72); opacity:.42; } 50% { transform:scale(1.3); opacity:1; } }
+      /* Keep evidence visible without turning every reply into a source wall. */
+      .chat-source-label { font-weight:850; color:#405875; }
+      .chat-source-main { display:inline; }
+      .chat-source-more { display:inline-block; margin-left:7px; }
+      .chat-source-more summary { display:inline-flex; align-items:center; gap:4px; cursor:pointer; color:#245bbb; font-weight:800; list-style:none; }
+      .chat-source-more summary::-webkit-details-marker { display:none; }
+      .chat-source-more summary:after { content:'+'; font-size:14px; line-height:1; }
+      .chat-source-more[open] summary:after { content:'–'; }
+      .chat-source-more-list { display:grid; gap:4px; margin:7px 0 0; padding:8px 10px; border:1px solid #dce6f4; border-radius:8px; background:#f8fbff; }
     </style>
   </head>
   <body>
@@ -653,11 +662,23 @@
           closeList();if(!trimmed)return;const paragraph=document.createElement('p');paragraph.textContent=trimmed;container.append(paragraph);
         });
       }
+      function sourceLabel(source){return [source.fileName||source.title,source.section].filter(Boolean).join(' — ');}
+      function appendSourceLink(holder,source){const label=sourceLabel(source);if(source.citation&&/^https?:\/\//.test(source.citation)){const link=document.createElement('a');link.href=source.citation;link.target='_blank';link.rel='noopener noreferrer';link.textContent=label;holder.append(link);}else holder.append(label);}
+      function preferredChatSource(sources){return sources.find(source=>/^PDF page\s+\d+/i.test(source.section||''))||sources[0];}
+      function appendChatSources(item,sources){
+        const primary=preferredChatSource(sources);if(!primary)return;
+        const remaining=sources.filter(source=>source!==primary);
+        const sourceLine=document.createElement('div');sourceLine.className='chat-sources';
+        const sourceTitle=document.createElement('span');sourceTitle.className='chat-source-label';sourceTitle.textContent='Source: ';sourceLine.append(sourceTitle);
+        const main=document.createElement('span');main.className='chat-source-main';appendSourceLink(main,primary);sourceLine.append(main);
+        if(remaining.length){const more=document.createElement('details');more.className='chat-source-more';const summary=document.createElement('summary');summary.textContent=`View ${remaining.length} more source${remaining.length===1?'':'s'}`;const list=document.createElement('div');list.className='chat-source-more-list';remaining.forEach(source=>{const row=document.createElement('div');appendSourceLink(row,source);list.append(row);});more.append(summary,list);sourceLine.append(more);}
+        item.append(sourceLine);
+      }
       function appendChatMessage(role,text,extraClass='',sources=[]){
         const item=document.createElement('div');item.className=`chat-message ${role} ${extraClass}`;
         const label=document.createElement('span');label.className='message-label';label.textContent=role==='user'?'You':'AI readiness coach';item.append(label);
         appendChatText(item,text,role==='assistant');
-        if(role==='assistant'&&sources.length){const sourceLine=document.createElement('div');sourceLine.className='chat-sources';sourceLine.append('Sources: ');sources.forEach((source,position)=>{if(position)sourceLine.append(' · ');const sourceLabel=[source.fileName||source.title,source.section].filter(Boolean).join(' — ');if(source.citation&&/^https?:\/\//.test(source.citation)){const link=document.createElement('a');link.href=source.citation;link.target='_blank';link.rel='noopener noreferrer';link.textContent=sourceLabel;sourceLine.append(link);}else sourceLine.append(sourceLabel);});item.append(sourceLine);}
+        if(role==='assistant'&&sources.length)appendChatSources(item,sources);
         $('chatMessages').append(item);scrollChatToLatest();return item;
       }
       function appendCoachThinking(){
