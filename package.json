@@ -21,6 +21,8 @@
     "db:bootstrap": "tsx scripts/bootstrap.ts",
     "knowledge:build:heair-paper-artifact": "tsx scripts/build-heair-paper-artifact.ts",
     "knowledge:import:heair-paper": "tsx scripts/import-heair-paper.ts",
+    "knowledge:build:research-paper-artifact": "tsx scripts/build-research-paper-artifact.ts",
+    "knowledge:import:research-paper": "tsx scripts/import-research-paper.ts",
     "research:publisher": "tsx scripts/research-publisher.ts",
     "test": "vitest run --pool=forks --maxWorkers=1 --minWorkers=1"
   },
