@@ -81,7 +81,9 @@ export function buildFullHeairPaperArtifact(
     pages: prepared.pages,
     chunks: prepared.chunks
   };
-  return { ...payload, integritySha256: sha256(canonicalJson(payload)) };
+  // Parse the generated payload as well as external artifacts so the returned
+  // value retains the schema's literal manifest types at compile time.
+  return artifactSchema.parse({ ...payload, integritySha256: sha256(canonicalJson(payload)) });
 }
 
 /** Rejects modified, incompatible, or incomplete ORION artifacts before database import. */
