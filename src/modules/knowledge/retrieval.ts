@@ -39,6 +39,12 @@ function queryTerms(question: string) {
   return [...new Set((question.toLocaleLowerCase().match(/[a-z]{3,}/g) ?? []).filter((term) => !ignoredQueryTerms.has(term)))].slice(0, 12);
 }
 
+/** A direct document question should surface the page-cited full-paper chunks,
+ * not let the compact framework summary occupy every retrieval slot. */
+export function asksForFullPaperEvidence(question: string) {
+  return /\b(?:paper|pdf|page|pages|cite|cites|cited|citation|citations)\b/i.test(question);
+}
+
 /**
  * Metadata-ranked RAG retrieval. The initial corpus is compact and deliberately
  * uses framework labels rather than an additional paid embedding provider.
@@ -53,6 +59,7 @@ export async function retrieveHeairContext(role: string, scores: Score[], limit 
     const weakSubDimensions = new Set(weakest.map((score) => subDimensionIds[score.subDimension]).map((id) => retrievalSubDimensionIds[id] || id).filter(Boolean));
     const weakDimensions = new Set(weakest.map((score) => dimensionIds[score.dimension]).filter(Boolean));
     const terms = queryTerms(question);
+    const wantsFullPaperEvidence = asksForFullPaperEvidence(question);
     const roleTerms = role === "executive_leadership" ? ["executive leadership", "administrators", "leadership"]
       : role === "administrative_staff" ? ["administrative staff", "academic and business affairs staff", "business affairs"]
       : role === "programming_staff" ? ["programming staff", "IT staff", "technical"]
@@ -66,6 +73,10 @@ export async function retrieveHeairContext(role: string, scores: Score[], limit 
         let rank = metadata.roles?.includes(role) ? 2 : 0;
         if (metadata.subDimensionId && weakSubDimensions.has(metadata.subDimensionId)) rank += 10;
         if (metadata.dimensionId && weakDimensions.has(metadata.dimensionId)) rank += 3;
+        // The full paper is the authoritative page-cited source for an
+        // explicit paper/PDF/citation request. It remains one source among
+        // many for ordinary coaching questions.
+        if (wantsFullPaperEvidence && metadata.kind === "full_paper") rank += 20;
         const chunkText = chunk.chunkText.toLocaleLowerCase();
         if (roleTerms.some((term) => chunkText.includes(term))) rank += 3;
         rank += Math.min(8, terms.reduce((total, term) => total + (chunkText.includes(term) ? 2 : 0), 0));
