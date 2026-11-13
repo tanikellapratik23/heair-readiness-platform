@@ -38,3 +38,40 @@ npm run knowledge:import:heair-paper -- --input /private/path/heair-pages.json
 ```
 
 The importer replaces the prior full-paper import with a deterministic set of page-aware chunks. It does not alter assessment scores, user data, or the existing 13 curated framework chunks. Verify several Coach queries and their displayed page/section citations before treating the full paper as production-ready.
+
+### Optional ORION build, then Neon import
+
+ORION can prepare the same retrieval artifact offline through Slurm. The live site does **not** contact ORION or scratch storage. The scheduled job writes a validated JSON artifact to durable ORION home storage; copy that artifact to a trusted Mac, then explicitly import it into Neon.
+
+On the **ORION login node** (development/setup only), clone or update the repository in `/users/<NinerNET>/`, then prepare the PDF-only Python environment:
+
+```sh
+module load node.js/22.20.0
+cd /users/<NinerNET>/hearmes-orion
+git switch main && git pull --ff-only
+npm ci && npm run db:generate
+python3 -m venv .venv-pdf
+.venv-pdf/bin/python -m pip install pypdf
+mkdir -p /users/<NinerNET>/hearmes-artifacts /users/<NinerNET>/hearmes-logs
+```
+
+Upload an approved PDF to `/users/<NinerNET>/hearmes-inputs/` first. Then submit the **scheduled compute job** (the known `Orion` CPU partition is shown; adjust only if URC directs you to another approved resource):
+
+```sh
+export HEARMES_REPO=/users/<NinerNET>/hearmes-orion
+export HEARMES_PDF=/users/<NinerNET>/hearmes-inputs/HEAIR.pdf
+export HEARMES_OUTPUT=/users/<NinerNET>/hearmes-artifacts/heair-paper-v1.artifact.json
+
+sbatch --partition=Orion --cpus-per-task=1 --mem=2G --time=00:10:00 \
+  --output=/users/<NinerNET>/hearmes-logs/heair-paper-%j.out \
+  --error=/users/<NinerNET>/hearmes-logs/heair-paper-%j.err \
+  scripts/orion/build-heair-paper-artifact.slurm
+```
+
+After Slurm reports `COMPLETED` with exit code `0`, copy the artifact from durable ORION home storage to a trusted Mac using `scp`. On the **Mac**, validate the artifact before the real import:
+
+```sh
+npm run knowledge:import:heair-paper -- --artifact /private/path/heair-paper-v1.artifact.json --dry-run
+```
+
+Then set `DATABASE_URL` only in the current terminal session and run the same command without `--dry-run`. The importer verifies schema, page count, chunk indexes, and an integrity checksum before replacing the prior full-paper import in Neon.

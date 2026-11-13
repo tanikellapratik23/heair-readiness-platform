@@ -6,18 +6,22 @@ import {
   FULL_HEAIR_PAPER_TITLE,
   prepareFullHeairPaper
 } from "../src/modules/knowledge/full-paper-import.js";
+import { parseFullHeairPaperArtifact } from "../src/modules/knowledge/full-paper-artifact.js";
 
 const args = process.argv.slice(2);
 const inputIndex = args.indexOf("--input");
+const artifactIndex = args.indexOf("--artifact");
 const inputPath = inputIndex >= 0 ? args[inputIndex + 1] : undefined;
+const artifactPath = artifactIndex >= 0 ? args[artifactIndex + 1] : undefined;
 const dryRun = args.includes("--dry-run");
 
-if (!inputPath || inputIndex + 1 >= args.length || args.some((arg, index) => arg !== "--input" && arg !== "--dry-run" && index !== inputIndex + 1)) {
-  throw new Error("Usage: npm run knowledge:import:heair-paper -- --input /absolute/path/heair-pages.json [--dry-run]");
+if ((Boolean(inputPath) === Boolean(artifactPath)) || (inputPath && inputIndex + 1 >= args.length) || (artifactPath && artifactIndex + 1 >= args.length) || args.some((arg, index) => arg !== "--input" && arg !== "--artifact" && arg !== "--dry-run" && index !== inputIndex + 1 && index !== artifactIndex + 1)) {
+  throw new Error("Usage: npm run knowledge:import:heair-paper -- (--input /absolute/heair-pages.json | --artifact /absolute/heair-paper.artifact.json) [--dry-run]");
 }
 
-const source = prepareFullHeairPaper(JSON.parse(await readFile(inputPath, "utf8")));
-const summary = { title: FULL_HEAIR_PAPER_TITLE, pages: source.pages.length, chunks: source.chunks.length, documentId: FULL_HEAIR_PAPER_DOCUMENT_ID, dryRun };
+const raw = JSON.parse(await readFile((artifactPath || inputPath)!, "utf8"));
+const source = artifactPath ? parseFullHeairPaperArtifact(raw) : prepareFullHeairPaper(raw);
+const summary = { title: FULL_HEAIR_PAPER_TITLE, pages: source.pages.length, chunks: source.chunks.length, documentId: FULL_HEAIR_PAPER_DOCUMENT_ID, input: artifactPath ? "validated-orion-artifact" : "raw-pages", dryRun };
 
 if (dryRun) {
   console.log(JSON.stringify(summary, null, 2));
