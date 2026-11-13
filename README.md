@@ -75,21 +75,3 @@ npm run knowledge:import:heair-paper -- --artifact /private/path/heair-paper-v1.
 ```
 
 Then set `DATABASE_URL` only in the current terminal session and run the same command without `--dry-run`. The importer verifies schema, page count, chunk indexes, and an integrity checksum before replacing the prior full-paper import in Neon.
-
-### Local Research Publisher dashboard
-
-For an approved HEAIR paper, the local-only Research Publisher replaces the repeated upload, Slurm submission, artifact-copy, and import commands with a guided browser workflow. It binds only to `127.0.0.1`; it is not part of the public HEARMES website and does not expose a public upload endpoint.
-
-The dashboard deliberately never asks for a NinerNET password, Duo code, VPN credentials, or database URL. Connect Cisco Secure Client first, then establish a temporary SSH control connection in a separate Mac Terminal (complete Duo there):
-
-```sh
-ssh -M -S "$HOME/.ssh/hearmes-orion.sock" -o ControlPersist=30m -N <NinerNET>@hpc.charlotte.edu
-```
-
-In another terminal, from this repository, set `DATABASE_URL` only for the current session if you intend to do the final database import, then start the dashboard:
-
-```sh
-npm run research:publisher
-```
-
-Open `http://127.0.0.1:3060`. The dashboard uploads the approved PDF to the caller's ORION home directory, submits the existing CPU Slurm workflow, polls Slurm status, copies the completed artifact back to a temporary local directory, validates it with the existing dry-run importer, and enables the explicit Neon import only after that validation passes. It supports the fixed, reviewed full-HEAIR-paper importer; it must not be used to label arbitrary documents as the HEAIR paper.

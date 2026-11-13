@@ -3,9 +3,6 @@
 # assume a partition, account, GPU, module, or wall-time limit.
 set -euo pipefail
 
-# This module/version was verified on ORION during the HEARMES smoke test.
-module load node.js/22.20.0
-
 : "${HEARMES_REPO:?Set HEARMES_REPO to the cloned repository in your ORION home directory.}"
 : "${HEARMES_PDF:?Set HEARMES_PDF to an approved PDF in your ORION home directory.}"
 : "${HEARMES_OUTPUT:?Set HEARMES_OUTPUT to a durable artifact path in your ORION home directory.}"
