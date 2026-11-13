@@ -52,7 +52,7 @@ export function asksForFullPaperEvidence(question: string) {
 export async function retrieveHeairContext(role: string, scores: Score[], limit = 6, question = "") {
   try {
     const chunks = await prisma.knowledgeChunk.findMany({
-      where: { document: { sourceType: { in: ["heair_paper", "research_paper", "best_practice"] } } },
+      where: { document: { sourceType: "heair_paper" } },
       include: { document: { select: { sourceTitle: true, sourceUrlOrCitation: true, publisher: true, publishedAt: true, sourceType: true } } }
     });
     const weakest = [...scores].sort((left, right) => left.score - right.score).slice(0, 3);

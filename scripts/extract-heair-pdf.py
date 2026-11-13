@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Extract a text-based approved research PDF into the page manifest used by the importer.
+"""Extract a text-based HEAIR PDF into the page manifest used by the local importer.
 
 Run outside production: python3 scripts/extract-heair-pdf.py PAPER.pdf OUTPUT.json
 Requires pypdf: python3 -m pip install pypdf
