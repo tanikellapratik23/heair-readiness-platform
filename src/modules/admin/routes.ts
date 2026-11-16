@@ -16,6 +16,12 @@ const dimensionColumns = [
 ] as const;
 const subDimensionColumns = PROJECT_HEARMES_SUB_DIMENSIONS.map((item) => [item.id, `${item.id}_score`] as const);
 const exportQuery = z.object({ institution_id: z.string().uuid().optional() });
+const institutionQuery = z.object({ institution_id: z.string().uuid().optional() });
+
+function roundedAverage(values: number[]) {
+  if (!values.length) return null;
+  return Math.round((values.reduce((sum, value) => sum + value, 0) / values.length) * 10) / 10;
+}
 
 async function administrator(request: FastifyRequest, reply: FastifyReply) {
   try {
@@ -107,8 +113,13 @@ export async function adminRoutes(app: FastifyInstance) {
     if (!await administrator(request, reply)) return;
     const role = (request.params as { role: string }).role;
     if (!activeRoles.includes(role as (typeof activeRoles)[number])) return fail(reply, 404, "Stakeholder group not found.");
+    const query = institutionQuery.safeParse(request.query);
+    if (!query.success) return fail(reply, 400, "Choose a valid institution.");
     const respondents = await prisma.user.findMany({
-      where: { sessions: { some: { ...completedAssessment, roleAtTime: role as (typeof activeRoles)[number] } } },
+      where: {
+        ...(query.data.institution_id ? { institutionId: query.data.institution_id } : {}),
+        sessions: { some: { ...completedAssessment, roleAtTime: role as (typeof activeRoles)[number] } }
+      },
       orderBy: [{ institution: { name: "asc" } }, { email: "asc" }],
       select: {
         fullName: true,
@@ -120,6 +131,7 @@ export async function adminRoutes(app: FastifyInstance) {
     });
     return {
       role,
+      institutionId: query.data.institution_id ?? null,
       people: respondents.map((person) => ({
         fullName: person.fullName,
         email: person.email,
@@ -128,6 +140,87 @@ export async function adminRoutes(app: FastifyInstance) {
         latestAssessmentAt: person.sessions[0]?.completedAt ?? null,
         assessmentCount: person._count.sessions
       }))
+    };
+  });
+
+  /**
+   * A privacy-conscious institutional readiness summary. It deliberately uses
+   * only the latest completed result for each person and returns aggregates,
+   * never respondent-level data.
+   */
+  app.get("/admin/institutions/:institutionId/readiness-report", async (request, reply) => {
+    if (!await administrator(request, reply)) return;
+    const institutionId = (request.params as { institutionId: string }).institutionId;
+    if (!z.string().uuid().safeParse(institutionId).success) return fail(reply, 400, "Choose a valid institution.");
+
+    const [institution, sessions] = await Promise.all([
+      prisma.institution.findUnique({ where: { id: institutionId }, select: { id: true, name: true } }),
+      prisma.assessmentSession.findMany({
+        where: { ...completedAssessment, user: { institutionId } },
+        orderBy: { completedAt: "desc" },
+        select: {
+          userId: true,
+          roleAtTime: true,
+          completedAt: true,
+          scoreResult: {
+            select: {
+              overallScore: true,
+              dimensionScores: { select: { score: true, dimension: { select: { id: true, label: true, sortOrder: true } } } },
+              subDimensionScores: { select: { score: true, subDimension: { select: { id: true, label: true, sortOrder: true, dimension: { select: { label: true, sortOrder: true } } } } } }
+            }
+          }
+        }
+      })
+    ]);
+    if (!institution) return fail(reply, 404, "Institution not found.");
+
+    const latestByPerson = new Map<string, (typeof sessions)[number]>();
+    for (const session of sessions) if (!latestByPerson.has(session.userId)) latestByPerson.set(session.userId, session);
+    const latest = [...latestByPerson.values()].filter((session) => session.scoreResult);
+    const dimensions = new Map<string, { label: string; sortOrder: number; scores: number[] }>();
+    const subDimensions = new Map<string, { label: string; dimension: string; dimensionOrder: number; sortOrder: number; scores: number[] }>();
+    const roles = new Map<string, number[]>();
+    for (const session of latest) {
+      const result = session.scoreResult!;
+      const roleScores = roles.get(session.roleAtTime) ?? [];
+      roleScores.push(Number(result.overallScore));
+      roles.set(session.roleAtTime, roleScores);
+      for (const item of result.dimensionScores) {
+        const entry = dimensions.get(item.dimension.id) ?? { label: item.dimension.label, sortOrder: item.dimension.sortOrder, scores: [] };
+        entry.scores.push(Number(item.score));
+        dimensions.set(item.dimension.id, entry);
+      }
+      for (const item of result.subDimensionScores) {
+        const entry = subDimensions.get(item.subDimension.id) ?? {
+          label: item.subDimension.label,
+          dimension: item.subDimension.dimension.label,
+          dimensionOrder: item.subDimension.dimension.sortOrder,
+          sortOrder: item.subDimension.sortOrder,
+          scores: []
+        };
+        entry.scores.push(Number(item.score));
+        subDimensions.set(item.subDimension.id, entry);
+      }
+    }
+
+    return {
+      institution,
+      generatedAt: new Date().toISOString(),
+      basis: "Latest completed assessment for each account",
+      participantCount: latest.length,
+      completedAssessmentCount: sessions.length,
+      overallAverage: roundedAverage(latest.map((session) => Number(session.scoreResult!.overallScore))),
+      dimensions: [...dimensions.entries()]
+        .map(([id, item]) => ({ id, label: item.label, averageScore: roundedAverage(item.scores), respondentCount: item.scores.length, sortOrder: item.sortOrder }))
+        .sort((left, right) => left.sortOrder - right.sortOrder),
+      focusAreas: [...subDimensions.entries()]
+        .map(([id, item]) => ({ id, label: item.label, dimension: item.dimension, averageScore: roundedAverage(item.scores), respondentCount: item.scores.length, dimensionOrder: item.dimensionOrder, sortOrder: item.sortOrder }))
+        .sort((left, right) => (left.averageScore ?? 101) - (right.averageScore ?? 101) || left.dimensionOrder - right.dimensionOrder || left.sortOrder - right.sortOrder)
+        .slice(0, 3),
+      stakeholderGroups: activeRoles.map((role) => {
+        const scores = roles.get(role) ?? [];
+        return { role, participantCount: scores.length, averageScore: roundedAverage(scores) };
+      })
     };
   });
 

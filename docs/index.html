@@ -40,6 +40,7 @@
       .password-toggle[aria-pressed="true"] .eye-open { display:block; }
 
       .university-subdimensions { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+      .subdimension-explorer{align-self:stretch;padding:18px;border:1px solid #d6e3f5;border-radius:16px;background:linear-gradient(145deg,#f6faff,#fff)}.subdimension-explorer-head{display:flex;align-items:start;justify-content:space-between;gap:12px}.subdimension-explorer h3{margin:3px 0 0;font-size:17px}.subdimension-explorer p{margin:5px 0 0;font-size:12px;line-height:1.45}.subdimension-explorer select{max-width:none;margin:14px 0 10px;padding:10px 12px;font-size:13px}.subdimension-actions{display:flex;gap:8px;margin:0 0 10px}.subdimension-actions button{padding:7px 9px;border:1px solid #c8daf4;background:#fff;color:#285aa9;box-shadow:none;font-size:11px}.subdimension-actions button:hover{background:#eaf2ff}.subdimension-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:270px;overflow:auto;padding-right:2px}.subdimension-option{display:flex;align-items:center;justify-content:space-between;gap:7px;min-width:0;padding:9px 10px;border:1px solid #d9e4f3;border-radius:10px;background:#fff;color:#405b80;box-shadow:none;text-align:left;font-size:11px;line-height:1.28}.subdimension-option:hover{background:#eff5ff}.subdimension-option[aria-pressed="true"]{border-color:#5288df;background:#eaf3ff;color:#194b98;box-shadow:0 0 0 2px #75a5eb22}.subdimension-option span{overflow:hidden;text-overflow:ellipsis}.subdimension-option b{flex:0 0 auto;color:#245bbb;font-size:12px}.subdimension-more{margin-top:12px;border-top:1px solid #e1e9f4;padding-top:10px;color:#60738f;font-size:12px;line-height:1.5}.subdimension-more summary{cursor:pointer;color:#285aa9;font-weight:800}.subdimension-more p{margin:7px 0 0}.subdimension-empty{padding:18px;color:#63738c;text-align:center;font-size:13px}.admin-institution-picker{margin:24px 0 0;padding:17px;border:1px solid #d5e2f4;border-radius:15px;background:#f7faff}.admin-institution-picker label{display:block;color:#31558a;font-size:12px;font-weight:850;letter-spacing:.07em;text-transform:uppercase}.admin-institution-picker select{max-width:none;margin:8px 0 3px}.admin-institution-picker p{margin:0;font-size:13px}.admin-workspace-head{display:flex;align-items:start;justify-content:space-between;gap:14px;margin:24px 0 0}.admin-workspace-head h3{margin:4px 0 0;font-size:21px}.admin-workspace-head p{margin:5px 0 0;font-size:13px}.admin-workspace-actions{display:flex;gap:8px;flex-wrap:wrap}.admin-workspace-actions button{padding:9px 11px;font-size:12px}.admin-report-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}.admin-report-card{padding:13px;border:1px solid #d9e4f3;border-radius:12px;background:#fff}.admin-report-card b{display:block;color:#245bbb;font-size:23px;letter-spacing:-.05em}.admin-report-card span{display:block;margin-top:4px;color:#60738f;font-size:12px;font-weight:750}.admin-report-section{margin:22px 0 0}.admin-report-section h3{margin:0 0 9px}.admin-report-list{display:grid;gap:7px;padding:0;margin:0;list-style:none}.admin-report-list li{display:flex;justify-content:space-between;gap:14px;padding:10px 12px;border:1px solid #dce6f3;border-radius:10px;background:#fff;font-size:13px}.admin-report-list small{display:block;color:#6a7d96;margin-top:2px}.admin-report-list b{color:#245bbb;white-space:nowrap}.admin-report-note{padding:12px;border-radius:10px;background:#f3f7fd;color:#566c8b;font-size:12px;line-height:1.5}.admin-dialog .admin-summary{margin:0 0 16px}.admin-dialog .admin-role-table{margin-bottom:0}@media(max-width:700px){.subdimension-options{grid-template-columns:1fr}.admin-workspace-head{display:block}.admin-workspace-actions{margin-top:12px}.admin-report-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
       .university-subdimension { padding:15px; }
       .university-subdimension-head { display:flex; align-items:start; justify-content:space-between; gap:10px; }
       .university-subdimension b { min-height:0; max-width:72%; }
@@ -218,13 +219,11 @@
           <details class="university-all-details"><summary>View all 17 readiness subdimensions</summary><div id="universitySubdimensions" class="university-subdimensions"></div></details>
         </section>
         <section id="adminPanel" class="panel admin-panel hidden">
-          <div class="admin-top"><div><span class="admin-kicker">Administrator dashboard</span><h2>Welcome, Admin.</h2><p>Review completed assessments across institutions and stakeholder groups, then export the research dataset when needed.</p></div><div class="account-actions"><button class="secondary" onclick="loadAdminOverview()">Refresh data</button><button class="secondary" onclick="openAdminExport()">Export data</button><button class="secondary" onclick="signOut()">Sign out</button></div></div>
+          <div class="admin-top"><div><span class="admin-kicker">Administrator dashboard</span><h2>Institution readiness workspace</h2><p>Choose one institution to review its aggregate readiness, create a shareable summary, or export its authorized research data.</p></div><div class="account-actions"><button class="secondary" onclick="loadAdminOverview()">Refresh data</button><button class="secondary" onclick="signOut()">Sign out</button></div></div>
           <div class="admin-content">
-            <div id="adminStatus" class="admin-loading">Loading assessment data…</div>
-            <div id="adminSummary" class="admin-summary hidden"></div>
-            <div id="adminRoleSummary" class="admin-role-summary hidden"></div>
-            <h3 class="admin-section-title">Stakeholder overview</h3>
-            <div id="adminInstitutions"></div>
+            <div class="admin-institution-picker"><label for="adminInstitutionSelect">1. Choose an institution</label><select id="adminInstitutionSelect" onchange="selectAdminInstitution(this.value)"><option value="">Select an institution to begin</option></select><p>Only the selected institution’s aggregate results and authorized records appear below.</p></div>
+            <div id="adminStatus" class="admin-loading">Choose an institution to view readiness results.</div>
+            <div id="adminInstitutionWorkspace" class="hidden"><div class="admin-workspace-head"><div><span class="eyebrow">Selected institution</span><h3 id="adminInstitutionTitle">Institution readiness</h3><p id="adminInstitutionDescription"></p></div><div class="admin-workspace-actions"><button class="secondary" onclick="openAdminReadinessReport()">Create readiness report</button><button class="secondary" onclick="openAdminExport()">Export data</button></div></div><div id="adminSummary" class="admin-summary hidden"></div><div id="adminRoleSummary" class="admin-role-summary hidden"></div></div>
           </div>
         </section>
       </section>
@@ -246,7 +245,7 @@
           <div class="report-header-copy"><button class="secondary assessment-review-button" onclick="openAssessmentReview()">View assessment questions</button><span id="stage" class="stage"></span><h1 id="headline" class="headline"></h1><p id="summary"></p><div id="aiStatus" class="ai-note"><span class="spark">✦</span><span>Personalized Project HEARMES action plan</span></div><div id="saveStatus" class="save-status"></div></div>
         </div>
         <section class="section"><div class="section-heading"><h2>Readiness by dimension</h2><p>See which areas are furthest above or below your overall result.</p></div><div id="dimensions" class="dimension-grid"></div></section>
-        <section class="section score-visualization"><div class="section-heading"><h2>Profile visualization</h2><p>Use the shape to see balance across dimensions; use the insights to choose where to act.</p></div><div class="visualization-layout"><div id="radarChart" class="radar-chart" role="img" aria-label="Radar chart of readiness by Project HEARMES dimension"></div><aside id="profileInsights" class="profile-insights" aria-label="Profile interpretation"></aside></div></section>
+        <section class="section score-visualization"><div class="section-heading"><h2>Profile visualization by subdimension</h2><p>Choose up to six scored subdimensions to compare their readiness pattern.</p></div><div class="visualization-layout"><div id="radarChart" class="radar-chart" role="img" aria-label="Radar chart of selected Project HEARMES subdimensions"></div><aside class="subdimension-explorer" aria-label="Subdimension filters"><div class="subdimension-explorer-head"><div><span class="eyebrow">Explore scores</span><h3>Choose subdimensions</h3><p id="subdimensionSelectionStatus">Select up to six areas to plot.</p></div></div><label class="hidden" for="subdimensionDimensionFilter">Filter by readiness dimension</label><select id="subdimensionDimensionFilter" onchange="filterProfileSubdimensions(this.value)"><option value="all">All readiness dimensions</option></select><div class="subdimension-actions"><button type="button" onclick="showLowestProfileSubdimensions()">Show focus areas</button><button type="button" onclick="clearProfileSubdimensions()">Clear selection</button></div><div id="subdimensionOptions" class="subdimension-options"></div><details class="subdimension-more"><summary>How to use this view</summary><p>Select the areas you want to compare. Each point is the score from your completed assessment, so the diagram shows detail that the four-dimension summary cannot.</p></details></aside><aside id="profileInsights" class="hidden" aria-hidden="true"></aside></div></section>
         <section class="section methodology-section"><details id="methodologyPanel"><summary>How this score was calculated</summary><div id="methodologyContent"></div></details></section>
         <section class="section"><div class="section-heading"><h2>Strengths</h2><p>Use these as your foundation</p></div><div id="strengths" class="cards"></div></section>
         <section class="section"><div class="section-heading"><h2>Priority actions</h2><p>Focus on these first</p></div><div id="priorities" class="cards"></div></section>
@@ -284,14 +283,26 @@
     <section id="adminStakeholderDialog" class="admin-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="adminStakeholderTitle">
       <div class="admin-dialog"><header class="admin-dialog-header"><div><span class="eyebrow">Stakeholder detail</span><h2 id="adminStakeholderTitle">Assessment results</h2><p id="adminStakeholderDescription">Latest completed results for this stakeholder group.</p></div><button class="chat-close" onclick="closeAdminStakeholder()" aria-label="Close stakeholder detail">×</button></header><div id="adminStakeholderBody" class="admin-dialog-body"></div></div>
     </section>
+    <section id="adminReadinessReportDialog" class="admin-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="adminReadinessReportTitle">
+      <div class="admin-dialog"><header class="admin-dialog-header"><div><span class="eyebrow">Institution readiness report</span><h2 id="adminReadinessReportTitle">Readiness summary</h2><p id="adminReadinessReportDescription">Aggregate results from the selected institution.</p></div><button class="chat-close" onclick="closeAdminReadinessReport()" aria-label="Close readiness report">×</button></header><div id="adminReadinessReportBody" class="admin-dialog-body"></div></div>
+    </section>
     <script src="config.js"></script>
     <script src="questions.js"></script>
     <script src="institutions.js"></script>
     <script>
       const questionBank=window.HEAIR_QUESTION_BANK||{};
-      let questions=[], index=0, answers=[], dimensionComments={}, commentStepDimension=null, scoreContext=null, chatMessages=[], activeConversationId=null, authMode='register', authToken=localStorage.getItem('heair_auth_token')||'', signedInUser=null, savedResults=[], adminInstitutions=[], institutionSearchTimer=null, institutionSearchController=null, submissionInFlight=false;
+      let questions=[], index=0, answers=[], dimensionComments={}, commentStepDimension=null, scoreContext=null, chatMessages=[], activeConversationId=null, authMode='register', authToken=localStorage.getItem('heair_auth_token')||'', signedInUser=null, savedResults=[], adminInstitutions=[], adminSelectedInstitutionId='', adminInstitutionReport=null, profileSubdimensionScores=[], selectedProfileSubdimensions=[], profileSubdimensionFilter='all', institutionSearchTimer=null, institutionSearchController=null, submissionInFlight=false;
       const $=id=>document.getElementById(id);
       const esc=value=>String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+      function subdimensionLabelLines(label){const words=String(label||'').split(' '),lines=[''];for(const word of words){const current=lines.at(-1);if(current&&`${current} ${word}`.trim().length>15&&lines.length<2)lines.push(word);else lines[lines.length-1]=`${current} ${word}`.trim();}if(words.join(' ').length>lines.join(' ').length)lines[lines.length-1]=`${lines.at(-1).slice(0,13)}…`;return lines;}
+      function subdimensionRadarSvg(items){const count=items.length,cx=180,cy=180,r=110,angles=items.map((_,position)=>-Math.PI/2+position*(Math.PI*2/count)),point=(score,position)=>`${(cx+Math.cos(angles[position])*r*score/100).toFixed(1)},${(cy+Math.sin(angles[position])*r*score/100).toFixed(1)}`,labelPoint=position=>({x:cx+Math.cos(angles[position])*r*1.25,y:cy+Math.sin(angles[position])*r*1.25}),rings=[25,50,75,100].map(level=>`<polygon class="radar-grid" points="${items.map((_,position)=>point(level,position)).join(' ')}"></polygon>`).join(''),spokes=items.map((_,position)=>`<line class="radar-grid" x1="${cx}" y1="${cy}" x2="${point(100,position)}"></line>`).join(''),data=items.map((item,position)=>point(Number(item.score)||0,position)).join(' '),labels=items.map((item,position)=>{const label=labelPoint(position),lines=subdimensionLabelLines(item.subDimension),anchor=label.x<cx-10?'end':label.x>cx+10?'start':'middle';return `<text x="${label.x.toFixed(1)}" y="${(label.y-(lines.length-1)*5).toFixed(1)}" text-anchor="${anchor}" fill="#526681" font-size="9" font-weight="700">${lines.map((line,index)=>`<tspan x="${label.x.toFixed(1)}" dy="${index?10:0}">${esc(line)}</tspan>`).join('')}</text>`;}).join('');return`<svg viewBox="0 0 360 360" aria-hidden="true">${rings}${spokes}<polygon class="radar-area" points="${data}"></polygon>${items.map((item,position)=>`<circle class="radar-dot" cx="${point(Number(item.score)||0,position).split(',')[0]}" cy="${point(Number(item.score)||0,position).split(',')[1]}" r="3"></circle>`).join('')}${labels}</svg>`;}
+      function getProfileVisibleSubdimensions(){return profileSubdimensionScores.filter(item=>profileSubdimensionFilter==='all'||item.dimension===profileSubdimensionFilter);}
+      function showLowestProfileSubdimensions(){selectedProfileSubdimensions=[...profileSubdimensionScores].sort((left,right)=>Number(left.score)-Number(right.score)).slice(0,6).map(item=>item.key);renderProfileSubdimensionExplorer();}
+      function clearProfileSubdimensions(){selectedProfileSubdimensions=[];renderProfileSubdimensionExplorer();}
+      function filterProfileSubdimensions(dimension){profileSubdimensionFilter=dimension;renderProfileSubdimensionExplorer();}
+      function toggleProfileSubdimension(key){if(selectedProfileSubdimensions.includes(key))selectedProfileSubdimensions=selectedProfileSubdimensions.filter(item=>item!==key);else if(selectedProfileSubdimensions.length<6)selectedProfileSubdimensions=[...selectedProfileSubdimensions,key];renderProfileSubdimensionExplorer();}
+      function renderProfileSubdimensionExplorer(){const chart=$('radarChart'),options=$('subdimensionOptions'),status=$('subdimensionSelectionStatus');if(!chart||!options)return;const visible=getProfileVisibleSubdimensions(),selected=profileSubdimensionScores.filter(item=>selectedProfileSubdimensions.includes(item.key));status.textContent=selected.length?`${selected.length} of 6 selected${profileSubdimensionFilter==='all'?' across all dimensions':` from ${profileSubdimensionFilter}`}.`:'Select up to six areas to plot.';options.innerHTML=visible.length?visible.map(item=>`<button type="button" class="subdimension-option" aria-pressed="${selectedProfileSubdimensions.includes(item.key)}" onclick="toggleProfileSubdimension('${esc(item.key)}')" title="${esc(item.dimension)}"><span>${esc(item.subDimension)}</span><b>${Number(item.score).toFixed(0)}</b></button>`).join(''):'<p class="subdimension-empty">No subdimensions match this filter.</p>';if(!selected.length){chart.innerHTML='<p class="subdimension-empty">Choose one or more subdimensions to build your profile visualization.</p>';chart.setAttribute('aria-label','No subdimensions selected.');return;}chart.innerHTML=subdimensionRadarSvg(selected);chart.setAttribute('aria-label',`Radar chart: ${selected.map(item=>`${item.subDimension} ${Number(item.score).toFixed(0)} out of 100`).join(', ')}`);}
+      function renderProfileExplorer(scores){profileSubdimensionScores=(Array.isArray(scores)?scores:[]).map((item,index)=>({key:`${item.dimension}|${item.subDimension}|${index}`,dimension:String(item.dimension||'Other'),subDimension:String(item.subDimension||'Readiness area'),score:Number(item.score)||0})).sort((left,right)=>left.dimension.localeCompare(right.dimension)||left.subDimension.localeCompare(right.subDimension));const filter=$('subdimensionDimensionFilter');if(!filter)return;const dimensions=[...new Set(profileSubdimensionScores.map(item=>item.dimension))];filter.innerHTML=`<option value="all">All readiness dimensions</option>${dimensions.map(dimension=>`<option value="${esc(dimension)}">${esc(dimension)}</option>`).join('')}`;profileSubdimensionFilter='all';selectedProfileSubdimensions=[...profileSubdimensionScores].sort((left,right)=>left.score-right.score).slice(0,Math.min(6,profileSubdimensionScores.length)).map(item=>item.key);renderProfileSubdimensionExplorer();}
       const apiBase=()=>window.HEAIR_API_URL?.replace(/\/$/,'');
       let backendWarmup=null;
       function warmBackend(){
@@ -405,6 +416,7 @@
         if(isAdministrator(user)){$('publicHome').classList.add('hidden');$('signedInHome').classList.add('hidden');$('accountArea').classList.add('hidden');$('adminPanel').classList.remove('hidden');return;}
         $('publicHome').classList.add('hidden');$('signedInHome').classList.remove('hidden');
         $('adminPanel').classList.add('hidden');$('accountArea').classList.remove('hidden');$('authForm').classList.add('hidden');
+        const dashboard=$('universityDashboard'),accountArea=$('accountArea');if(dashboard&&accountArea&&dashboard.previousElementSibling!==accountArea)accountArea.parentElement.insertBefore(dashboard,accountArea);
         const selectedRole=user.role?legacyRoleMap[user.role]||user.role:'';
         if(selectedRole)$('role').value=selectedRole;
         $('role').disabled=Boolean(selectedRole);
@@ -419,32 +431,53 @@
         $('accountAreaTitle').textContent='Your readiness history';$('accountAreaDescription').textContent=`Your ${user.institution.name} assessments are private to your account.`;$('welcomeTitle').textContent=`${user.fullName||user.email}'s saved assessments`;
       }
       async function loadAdminOverview(){
-        const status=$('adminStatus'),summary=$('adminSummary'),roleSummary=$('adminRoleSummary'),holder=$('adminInstitutions');
-        status.className='admin-loading';status.textContent='Loading assessment data…';summary.classList.add('hidden');roleSummary.classList.add('hidden');holder.innerHTML='';
+        const status=$('adminStatus'),workspace=$('adminInstitutionWorkspace'),select=$('adminInstitutionSelect');
+        status.className='admin-loading';status.textContent='Loading institutions…';workspace.classList.add('hidden');
         try{
-          const data=await api('/admin/overview'),totals=data.summary||{};
-          status.textContent='';
-          summary.innerHTML=`<article class="admin-stat"><b>${Number(totals.institutionCount||0)}</b><span>Institutions</span></article><article class="admin-stat"><b>${Number(totals.respondentCount||0)}</b><span>People with results</span></article><article class="admin-stat"><b>${Number(totals.completedAssessmentCount||0)}</b><span>Completed assessments</span></article>`;
-          summary.classList.remove('hidden');
-          const groups=Array.isArray(totals.stakeholderGroups)?totals.stakeholderGroups:[];
-          roleSummary.innerHTML=groups.length?`<table class="admin-role-table"><thead><tr><th>Stakeholder</th><th>People with results</th><th>Average latest score</th><th></th></tr></thead><tbody>${groups.map(group=>`<tr><td><strong>${esc(displayRole(group.role||''))}</strong></td><td>${Number(group.respondentCount||0)}</td><td>${group.averageLatestScore===null?'Not available':`${Number(group.averageLatestScore).toFixed(1)} / 100`}</td><td><button class="admin-role-link" onclick="openAdminStakeholder('${esc(group.role||'')}')">View information</button></td></tr>`).join('')}</tbody></table>`:'';
-          roleSummary.classList.toggle('hidden',!groups.length);
-          adminInstitutions=Array.isArray(data.institutions)?data.institutions:[];
-          holder.innerHTML=adminInstitutions.length?`<p class="admin-empty">Choose a stakeholder above to view detailed records. Use Export data to download all universities or one selected university.</p>`:'<div class="admin-empty">No institutions have been created yet.</div>';
+          const data=await api('/admin/overview');adminInstitutions=Array.isArray(data.institutions)?data.institutions:[];
+          select.innerHTML=`<option value="">Select an institution to begin</option>${adminInstitutions.map(institution=>`<option value="${esc(institution.id)}">${esc(institution.name)}</option>`).join('')}`;
+          if(adminSelectedInstitutionId&&adminInstitutions.some(item=>item.id===adminSelectedInstitutionId)){select.value=adminSelectedInstitutionId;await selectAdminInstitution(adminSelectedInstitutionId);return;}
+          adminSelectedInstitutionId='';adminInstitutionReport=null;status.textContent=adminInstitutions.length?'Choose an institution to view its readiness results.':'No institutions have been created yet.';
         }catch(error){status.className='admin-error';status.textContent=error.message||'Could not load administrator data.';}
       }
+      async function selectAdminInstitution(institutionId){
+        const status=$('adminStatus'),workspace=$('adminInstitutionWorkspace'),summary=$('adminSummary'),roleSummary=$('adminRoleSummary');
+        adminSelectedInstitutionId=institutionId;adminInstitutionReport=null;workspace.classList.add('hidden');summary.classList.add('hidden');roleSummary.classList.add('hidden');
+        if(!institutionId){status.className='admin-loading';status.textContent='Choose an institution to view its readiness results.';return;}
+        status.className='admin-loading';status.textContent='Building the institution readiness view…';
+        try{
+          const report=await api(`/admin/institutions/${encodeURIComponent(institutionId)}/readiness-report`);adminInstitutionReport=report;
+          const count=Number(report.participantCount||0),assessments=Number(report.completedAssessmentCount||0),overall=report.overallAverage;
+          $('adminInstitutionTitle').textContent=`${report.institution?.name||'Selected institution'} readiness`;
+          $('adminInstitutionDescription').textContent=`${report.basis||'Latest completed assessment for each account'}. Generated from ${count} participant${count===1?'':'s'}.`;
+          summary.innerHTML=`<article class="admin-stat"><b>${overall===null||overall===undefined?'—':`${Number(overall).toFixed(1)}`}</b><span>Average readiness / 100</span></article><article class="admin-stat"><b>${count}</b><span>People represented</span></article><article class="admin-stat"><b>${assessments}</b><span>Completed assessments</span></article>`;
+          summary.classList.remove('hidden');
+          const groups=Array.isArray(report.stakeholderGroups)?report.stakeholderGroups:[];
+          roleSummary.innerHTML=groups.length?`<h3 class="admin-section-title">Stakeholder groups at this institution</h3><table class="admin-role-table"><thead><tr><th>Stakeholder</th><th>People represented</th><th>Average readiness</th><th></th></tr></thead><tbody>${groups.map(group=>`<tr><td><strong>${esc(displayRole(group.role||''))}</strong></td><td>${Number(group.participantCount||0)}</td><td>${group.averageScore===null?'Not available':`${Number(group.averageScore).toFixed(1)} / 100`}</td><td>${Number(group.participantCount||0)?`<button class="admin-role-link" onclick="openAdminStakeholder('${esc(group.role||'')}')">View information</button>`:'—'}</td></tr>`).join('')}</tbody></table>`:'';
+          roleSummary.classList.toggle('hidden',!groups.length);workspace.classList.remove('hidden');status.textContent='';
+        }catch(error){status.className='admin-error';status.textContent=error.message||'Could not load this institution.';}
+      }
       function openAdminExport(){
-        const select=$('adminExportInstitution');
-        select.innerHTML=`<option value="">All universities and all completed assessments</option>${adminInstitutions.map(institution=>`<option value="${esc(institution.id)}">${esc(institution.name)}</option>`).join('')}`;
-        $('adminExportDialog').classList.remove('hidden');
+        if(!adminSelectedInstitutionId){$('adminStatus').className='admin-error';$('adminStatus').textContent='Choose an institution before exporting data.';return;}
+        const institution=adminInstitutions.find(item=>item.id===adminSelectedInstitutionId),select=$('adminExportInstitution');
+        select.innerHTML=`<option value="${esc(adminSelectedInstitutionId)}">${esc(institution?.name||'Selected institution')}</option>`;select.value=adminSelectedInstitutionId;
+        $('adminExportTitle').textContent=`Export ${institution?.name||'institution'} data`;$('adminExportDialog').classList.remove('hidden');
       }
       function closeAdminExport(){$('adminExportDialog').classList.add('hidden');}
       function closeAdminStakeholder(){$('adminStakeholderDialog').classList.add('hidden');}
+      function closeAdminReadinessReport(){$('adminReadinessReportDialog').classList.add('hidden');}
+      function openAdminReadinessReport(){
+        if(!adminInstitutionReport){$('adminStatus').className='admin-error';$('adminStatus').textContent='Choose an institution before creating a report.';return;}
+        const report=adminInstitutionReport,dimensions=Array.isArray(report.dimensions)?report.dimensions:[],focusAreas=Array.isArray(report.focusAreas)?report.focusAreas:[],groups=Array.isArray(report.stakeholderGroups)?report.stakeholderGroups:[];
+        $('adminReadinessReportTitle').textContent=`${report.institution?.name||'Institution'} AI readiness report`;$('adminReadinessReportDescription').textContent=`Created ${new Date(report.generatedAt||Date.now()).toLocaleString()}. ${report.basis||'Latest completed assessment for each account'}.`;
+        $('adminReadinessReportBody').innerHTML=`<div class="admin-report-note">This aggregate report describes institutional readiness patterns. It does not identify individual respondents.</div><div class="admin-summary"><article class="admin-stat"><b>${report.overallAverage===null?'—':Number(report.overallAverage).toFixed(1)}</b><span>Overall readiness / 100</span></article><article class="admin-stat"><b>${Number(report.participantCount||0)}</b><span>People represented</span></article><article class="admin-stat"><b>${Number(report.completedAssessmentCount||0)}</b><span>Completed assessments</span></article></div><section class="admin-report-section"><h3>Readiness by dimension</h3><div class="admin-report-grid">${dimensions.map(item=>`<article class="admin-report-card"><b>${item.averageScore===null?'—':Number(item.averageScore).toFixed(0)}<small>/100</small></b><span>${esc(item.label)}</span></article>`).join('')||'<p>No scored dimensions are available yet.</p>'}</div></section><section class="admin-report-section"><h3>Priority focus areas</h3><ol class="admin-report-list">${focusAreas.map(item=>`<li><span>${esc(item.label)}<small>${esc(item.dimension)}</small></span><b>${item.averageScore===null?'—':`${Number(item.averageScore).toFixed(0)} / 100`}</b></li>`).join('')||'<li>No subdimension results are available yet.</li>'}</ol></section><section class="admin-report-section"><h3>Stakeholder representation</h3><table class="admin-role-table"><thead><tr><th>Stakeholder</th><th>People represented</th><th>Average readiness</th></tr></thead><tbody>${groups.map(group=>`<tr><td>${esc(displayRole(group.role||''))}</td><td>${Number(group.participantCount||0)}</td><td>${group.averageScore===null?'Not available':`${Number(group.averageScore).toFixed(1)} / 100`}</td></tr>`).join('')}</tbody></table></section>`;
+        $('adminReadinessReportDialog').classList.remove('hidden');
+      }
       async function openAdminStakeholder(role){
         const title=$('adminStakeholderTitle'),description=$('adminStakeholderDescription'),body=$('adminStakeholderBody');
-        title.textContent=`${displayRole(role)} assessment results`;description.textContent='Latest completed assessment for each person in this stakeholder group.';body.innerHTML='<div class="admin-loading">Loading detailed results…</div>';$('adminStakeholderDialog').classList.remove('hidden');
+        const institution=adminInstitutions.find(item=>item.id===adminSelectedInstitutionId);title.textContent=`${displayRole(role)} assessment results`;description.textContent=`Latest completed results for this stakeholder group at ${institution?.name||'the selected institution'}.`;body.innerHTML='<div class="admin-loading">Loading detailed results…</div>';$('adminStakeholderDialog').classList.remove('hidden');
         try{
-          const data=await api(`/admin/stakeholders/${encodeURIComponent(role)}`),people=Array.isArray(data.people)?data.people:[];
+          const data=await api(`/admin/stakeholders/${encodeURIComponent(role)}?institution_id=${encodeURIComponent(adminSelectedInstitutionId)}`),people=Array.isArray(data.people)?data.people:[];
           body.innerHTML=people.length?`<div class="admin-people"><table><thead><tr><th>Person</th><th>University</th><th>Latest score</th><th>Latest assessment</th><th>Results saved</th></tr></thead><tbody>${people.map(person=>`<tr><td><strong>${esc(person.fullName||'Name not provided')}</strong>${esc(person.email)}</td><td>${esc(person.institutionName||'Institution not set')}</td><td>${person.latestScore===null?'Not available':`${Number(person.latestScore).toFixed(1)} / 100`}</td><td>${person.latestAssessmentAt?esc(new Date(person.latestAssessmentAt).toLocaleDateString()):'Not available'}</td><td>${Number(person.assessmentCount||0)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="admin-empty">No completed results have been saved for this stakeholder group yet.</div>';
         }catch(error){body.innerHTML=`<div class="admin-error">${esc(error.message||'Could not load stakeholder results.')}</div>`;}
       }
@@ -453,7 +486,8 @@
         button.disabled=true;button.textContent='Preparing export…';status.className='admin-loading';status.textContent='Preparing your CSV export…';
         try{
           if(!apiBase())throw new Error('Account storage is not configured yet.');
-          const endpoint=`${apiBase()}/admin/export.csv${institutionId?`?institution_id=${encodeURIComponent(institutionId)}`:''}`;
+          if(!institutionId)throw new Error('Choose an institution before exporting data.');
+          const endpoint=`${apiBase()}/admin/export.csv?institution_id=${encodeURIComponent(institutionId)}`;
           const response=await fetch(endpoint,{headers:authToken?{Authorization:`Bearer ${authToken}`}:{}});
           if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||'Could not export assessment data.');}
           const blob=await response.blob(),url=URL.createObjectURL(blob),link=document.createElement('a');
@@ -707,6 +741,17 @@
       else if(launchParams.get('assessment')==='1')openAccount('register');
       void warmBackend();
       (async()=>{if(!authToken)return;try{const user=await api('/me');showSignedIn(user);if(isAdministrator(user))await loadAdminOverview();else await loadSavedResults();}catch{localStorage.removeItem('heair_auth_token');authToken='';}})();
+    </script>
+    <script>
+      // Keep the established report renderer for the four-dimension summary,
+      // then replace only the lower visual with the chosen subdimension data.
+      if (typeof renderReport === 'function') {
+        const renderReportWithDimensionSummary = renderReport;
+        renderReport = function(report, overall, scores) {
+          renderReportWithDimensionSummary(report, overall, scores);
+          renderProfileExplorer(scores);
+        };
+      }
     </script>
   </body>
 </html>
